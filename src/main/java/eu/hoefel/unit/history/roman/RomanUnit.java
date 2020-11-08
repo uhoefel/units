@@ -1,22 +1,19 @@
-//package eu.hoefel.unit.history.roman;
-//
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Set;
-//
-//import eu.hoefel.unit.Unit;
-//import eu.hoefel.unit.UnitPrefix;
-//import eu.hoefel.unit.Units;
-//import eu.hoefel.unit.si.SiBaseUnit;
-//import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_FOOT;
-//import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_SQUARE_FOOT;
-//import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_CUBE_FOOT;
-//import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_JUGERUM;
-//import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_LIBRA;
-//
-//// TODO this should be checked by a historian
-//@SuppressWarnings("javadoc")
-//public enum RomanUnit implements Unit {
+package eu.hoefel.unit.history.roman;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import eu.hoefel.unit.Unit;
+import eu.hoefel.unit.UnitPrefix;
+import eu.hoefel.unit.Units;
+
+/**
+ * Undocumented. Needs to be checked by a historian before commenting in.
+ * 
+ * @author Udo Hoefel
+ */
+public enum RomanUnit implements Unit {
 //	// length units
 //	DIGITUS(ROMAN_FOOT / 16, "digitus"),
 //	UNCIA(ROMAN_FOOT / 12, "uncia", "pollex"),
@@ -89,30 +86,30 @@
 //	UNCIA_WEIGHT(ROMAN_LIBRA / 12, "uncia-(weight)"),
 //	LIBRA(ROMAN_LIBRA, "libra"),
 //	MINA(4 * ROMAN_LIBRA / 3, "mina")
-//	;
-//
-//	/** The symbols representing the roman unit. */
-//	private final List<String> symbols;
-//
-//	/** The factor to convert from the roman unit to the SI base units. */
-//	private final double factor;
-//
-//	/** The SI base units to which the roman unit corresponds. */
-//	private Map<Unit, Integer> baseUnits;
-//
-//	/**
-//	 * Constructor for historical roman units.
-//	 * 
-//	 * @param factor  the conversion factor to base SI units
-//	 * @param symbols the symbols representing the roman unit
-//	 */
-//	private RomanUnit(double factor, String... symbols) {
-//		this.factor = factor;
-//		this.symbols = List.of(symbols);
-//	}
-//
-//	@Override
-//	public Map<Unit, Integer> baseUnits() {
+	;
+
+	/** The symbols representing the roman unit. */
+	private final List<String> symbols;
+
+	/** The factor to convert from the roman unit to the SI base units. */
+	private final double factor;
+
+	/** The SI base units to which the roman unit corresponds. */
+	private Map<Unit, Integer> baseUnits;
+
+	/**
+	 * Constructor for historical roman units.
+	 * 
+	 * @param factor  the conversion factor to base SI units
+	 * @param symbols the symbols representing the roman unit
+	 */
+	private RomanUnit(double factor, String... symbols) {
+		this.factor = factor;
+		this.symbols = List.of(symbols);
+	}
+
+	@Override
+	public Map<Unit, Integer> baseUnits() {
 //		if (baseUnits == null) {
 //			baseUnits = switch (this) {
 //			case DIGITUS, UNCIA, PALMUS, PALMUS_MAIOR, 
@@ -137,16 +134,16 @@
 //				MINA -> Map.of(SiBaseUnit.KILOGRAM, 1);
 //			};
 //		}
-//		return baseUnits;
-//	}
-//
-//	@Override public double factor(String symbol) { return factor; }
-//	@Override public List<String> symbols() { return symbols; }
-//	@Override public boolean prefixAllowed(String symbol) { return false; }
-//	@Override public boolean canUseFactor() { return true; }
-//	@Override public double convertToBaseUnits(double value) { return factor * value; }
-//	@Override public double convertFromBaseUnits(double value) { return value / factor; }
-//	@Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
-//	@Override public boolean isBasic() { return false; }
-//	@Override public Set<Unit> compatibleUnits() { return Units.DEFAULT_UNITS; }
-//}
+		return baseUnits;
+	}
+
+	@Override public double factor(String symbol) { return factor; }
+	@Override public List<String> symbols() { return symbols; }
+	@Override public boolean prefixAllowed(String symbol) { return false; }
+	@Override public boolean canUseFactor() { return true; }
+	@Override public double convertToBaseUnits(double value) { return factor * value; }
+	@Override public double convertFromBaseUnits(double value) { return value / factor; }
+	@Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
+	@Override public boolean isBasic() { return false; }
+	@Override public Set<Unit> compatibleUnits() { return Units.DEFAULT_UNITS; }
+}
