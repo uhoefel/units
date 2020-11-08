@@ -1,5 +1,10 @@
 # Units
 
+[![](https://img.shields.io/github/issues/uhoefel/units?style=flat-square)](https://github.com/uhoefel/units/issues)
+[![](https://img.shields.io/github/stars/uhoefel/units?style=flat-square)](https://github.com/uhoefel/units/stargazers)
+[![DOI](https://zenodo.org/badge/309825766.svg)](https://zenodo.org/badge/latestdoi/309825766)
+[![](https://img.shields.io/github/license/uhoefel/units?style=flat-square)](https://choosealicense.com/licenses/mit/)
+
 Units is a [Java](https://openjdk.java.net/) library designed to handle units and constants.
 It is designed to handle string based units as well as sharper defined units.
 Some of the supported features include:
