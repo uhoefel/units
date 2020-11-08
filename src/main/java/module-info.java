@@ -35,7 +35,7 @@
  * <p>
  * The {@link eu.hoefel.unit.special} is the package containing (some)
  * implementations needed for the handling of more rarely used units, like
- * {@link eu.hoefel.unit.special.Planck Planck} units.
+ * {@link eu.hoefel.unit.special.PlanckUnit Planck} units.
  * <p>
  * The {@link eu.hoefel.unit.us} is the package containing the implementation
  * needed for the handling of US customary units.
