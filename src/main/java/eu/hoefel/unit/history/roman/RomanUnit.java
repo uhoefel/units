@@ -10,6 +10,7 @@ import java.util.Set;
 import eu.hoefel.unit.Unit;
 import eu.hoefel.unit.UnitPrefix;
 import eu.hoefel.unit.Units;
+import eu.hoefel.unit.si.SiBaseUnit;
 
 /**
  * Undocumented. Needs to be checked by a historian before commenting most of them in.
@@ -129,6 +130,12 @@ public enum RomanUnit implements Unit {
 
 	@Override
 	public Map<Unit, Integer> baseUnits() {
+		if (baseUnits == null) {
+			baseUnits = switch (this) {
+				case UNCIA_WEIGHT, LIBRA -> Map.of(SiBaseUnit.KILOGRAM, 1);
+				case UNCIA -> Map.of(SiBaseUnit.METER, 1);
+			};
+		}
 //		if (baseUnits == null) {
 //			baseUnits = switch (this) {
 //			case DIGITUS, UNCIA, PALMUS, PALMUS_MAIOR, 
