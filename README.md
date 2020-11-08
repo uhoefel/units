@@ -34,7 +34,7 @@ Some of the supported features include:
   will return `1e-3`.
 - Allows to check for equivalence, e.g.
   ```java
-  Units.equivalent("s", "min");
+  Units.equivalent(1, "s", "min");
   ```
   will return false, as `1min` is not the same as `1s`. On the other hand, checking for convertibility
   ```java
