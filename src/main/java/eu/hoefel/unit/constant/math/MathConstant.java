@@ -140,7 +140,7 @@ public enum MathConstant implements Constant {
 	 * Mills' constant, named after William H. Mills, is a constant in number
 	 * theory. It is defined as the smallest positive real number <i>A</i> such that
 	 * the floor function of the double exponential function
-	 * ⌊<i>A</i><sup>3<i>ⁿ</i></sup>⌋ is prime for all natural numbers
+	 * &#8970;<i>A</i><sup>3<i>&#8319;</i></sup>&#8971; is prime for all natural numbers
 	 * <i>n</i>.
 	 */
 	MILLS_CONSTANT(1.3063778838630806904686144926026057129167845851567136443680537599664340537668, "A051021"),
