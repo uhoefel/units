@@ -1,11 +1,9 @@
-package eu.hoefel.constants.math;
+package eu.hoefel.unit.constant.math;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import eu.hoefel.unit.constant.math.MathConstant;
 
 /**
  * This class intends to test the maths constants.

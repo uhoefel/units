@@ -1,4 +1,4 @@
-package eu.hoefel.constants.physics;
+package eu.hoefel.unit.constant.physics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import eu.hoefel.unit.Unit;
 import eu.hoefel.unit.Units;
 import eu.hoefel.unit.constant.Constant;
-import eu.hoefel.unit.constant.physics.PhysicsConstant;
 import eu.hoefel.unit.si.SiBaseUnit;
 import eu.hoefel.unit.si.SiDerivedUnit;
 

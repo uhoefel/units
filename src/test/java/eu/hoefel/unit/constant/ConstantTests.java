@@ -1,4 +1,4 @@
-package eu.hoefel.constants;
+package eu.hoefel.unit.constant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import eu.hoefel.unit.Unit;
-import eu.hoefel.unit.constant.Constant;
 
 /**
  * Tests for generic constants.
