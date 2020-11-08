@@ -19,7 +19,7 @@ public enum UnitContextMatch {
 	 * <p>
 	 * For example:<br>
 	 * <ul>
-	 * <li>{@code "kg^3 s^-1"} is an exact match to {@link "s^-1 kg^3"}
+	 * <li>{@code "kg^3 s^-1"} is an exact match to {@code "s^-1 kg^3"}
 	 * <li>{@code "kg^3 s^-1 sr"} is <em>not</em> an exact match to {@code "s^-1
 	 * kg^3"}, as the {@link SiDerivedUnit#STERADIAN steradian} part does not exactly match, even though the
 	 * dimension of steradian is 1.
@@ -33,8 +33,8 @@ public enum UnitContextMatch {
 	 *  <p>
 	 * For example:<br>
 	 * <ul>
-	 * <li>{@code "kg^3 s^-1 sr"} is compatible to {@link "s^-1 kg^3"}
-	 * <li>{@code "Mg^3 s^-1 sr"} is <em>not</em> compatible to {@link "s^-1 kg^3"}
+	 * <li>{@code "kg^3 s^-1 sr"} is compatible to {@code "s^-1 kg^3"}
+	 * <li>{@code "Mg^3 s^-1 sr"} is <em>not</em> compatible to {@code "s^-1 kg^3"}
 	 * </ul>
 	 */
 	EQUIVALENT((origin, target, extraUnits) -> Units.equivalent(1, origin, target, extraUnits)),
@@ -45,7 +45,7 @@ public enum UnitContextMatch {
 	 * <p>
 	 * For example:<br>
 	 * <ul>
-	 * <li>{@code "Mg^3 s^-1 sr"} is compatible to {@link "s^-1 kg^3"}
+	 * <li>{@code "Mg^3 s^-1 sr"} is compatible to {@code "s^-1 kg^3"}
 	 * </ul>
 	 */
 	COMPATIBLE(Units::convertible);

@@ -1,5 +1,8 @@
 package eu.hoefel.unit.history.roman;
 
+import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_FOOT;
+import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_LIBRA;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,14 +12,19 @@ import eu.hoefel.unit.UnitPrefix;
 import eu.hoefel.unit.Units;
 
 /**
- * Undocumented. Needs to be checked by a historian before commenting in.
+ * Undocumented. Needs to be checked by a historian before commenting most of them in.
  * 
  * @author Udo Hoefel
  */
 public enum RomanUnit implements Unit {
 //	// length units
 //	DIGITUS(ROMAN_FOOT / 16, "digitus"),
-//	UNCIA(ROMAN_FOOT / 12, "uncia", "pollex"),
+
+	/**
+	 * The uncia was one twelfth of a {@link RomanUnits#ROMAN_FOOT Roman foot}. It
+	 * is the origin of the {@link eu.hoefel.unit.imperial.ImperialUnit#INCH inch}.
+	 */
+	UNCIA(ROMAN_FOOT / 12, "uncia", "pollex"),
 //	PALMUS(0.25 * ROMAN_FOOT, "palmus"),
 //	PALMUS_MAIOR(0.75 * ROMAN_FOOT, "palmus-maior"),
 //
@@ -83,8 +91,19 @@ public enum RomanUnit implements Unit {
 //	SCRUPULUM_WEIGHT(ROMAN_LIBRA / 288, "scrupulum-(weight)"),
 //	DRACHMA(ROMAN_LIBRA / 96, "drachma"),
 //	SICILICUS_WEIGHT(ROMAN_LIBRA / 48, "sicilicus"),
-//	UNCIA_WEIGHT(ROMAN_LIBRA / 12, "uncia-(weight)"),
-//	LIBRA(ROMAN_LIBRA, "libra"),
+
+	/**
+	 * The uncia (for weight) corresponds to one twelfth of a {@link #LIBRA}. The
+	 * {@link eu.hoefel.unit.imperial.ImperialUnit#OUNCE} originated from it.
+	 */
+	UNCIA_WEIGHT(ROMAN_LIBRA / 12, "uncia-(weight)"),
+
+	/**
+	 * The libra corresponds to roughly 0.325
+	 * {@link eu.hoefel.unit.si.SiBaseUnit#KILOGRAM kg}. The
+	 * {@link eu.hoefel.unit.imperial.ImperialUnit#POUND} originated from it.
+	 */
+	LIBRA(ROMAN_LIBRA, "libra"),
 //	MINA(4 * ROMAN_LIBRA / 3, "mina")
 	;
 
