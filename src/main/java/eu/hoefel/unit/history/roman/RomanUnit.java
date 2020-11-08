@@ -15,6 +15,7 @@ import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_JUGERUM;
 import static eu.hoefel.unit.history.roman.RomanUnits.ROMAN_LIBRA;
 
 // TODO this should be checked by a historian
+@SuppressWarnings("javadoc")
 public enum RomanUnit implements Unit {
 	// length units
 	DIGITUS(ROMAN_FOOT / 16, "digitus"),
