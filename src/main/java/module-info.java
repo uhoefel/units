@@ -74,5 +74,4 @@ module eu.hoefel.unit {
 	requires org.junit.jupiter.api;
 	requires eu.hoefel.utils;
 	requires transitive eu.hoefel.jatex;
-	requires org.junit.jupiter.params;
 }
