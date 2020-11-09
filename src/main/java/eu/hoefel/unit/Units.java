@@ -2,7 +2,6 @@ package eu.hoefel.unit;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -41,7 +40,7 @@ public final class Units {
 
 	/** Hiding any public constructor. */
 	private Units() {
-	    throw new IllegalStateException("This is a pure utility class!");
+		throw new IllegalStateException("This is a pure utility class!");
 	}
 
 	/**
@@ -126,7 +125,7 @@ public final class Units {
 		Collections.addAll(defUnits, LevelUnit.values());
 		defUnits.add(EMPTY_UNIT);
 		DEFAULT_UNITS = Collections.unmodifiableSet(defUnits);
-		
+
 		Set<UnitPrefix> defPrefixes = new LinkedHashSet<>();
 		for (Unit refUnit : DEFAULT_UNITS) {
 			defPrefixes.addAll(refUnit.prefixes());
@@ -143,7 +142,7 @@ public final class Units {
 	 * units, which this one does not.
 	 */
 	public static final Comparator<String> COMPARATOR_FOR_UNIT_ORDERING = (symbol1, symbol2) -> {
-		
+
 		boolean refUnit1HasUppercase = symbol1.chars().anyMatch(c -> Character.isLetter(c) && Character.isUpperCase(c));
 		boolean refUnit2HasUppercase = symbol2.chars().anyMatch(c -> Character.isLetter(c) && Character.isUpperCase(c));
 
@@ -515,7 +514,8 @@ public final class Units {
 				} else {
 					throw new IllegalArgumentException(
 							("Conversion from \"%s\" to \"%s\" contains non-multiplicative operations, "
-							+ "hence a conversion factor cannot be used here.").formatted(toString(origin), toString(target)));					
+									+ "hence a conversion factor cannot be used here.").formatted(toString(origin),
+											toString(target)));			
 				}
 			} else {
 				throw new IllegalArgumentException(
@@ -932,7 +932,7 @@ public final class Units {
 			// checks against a reference unit plus an empty unit
 			refUnits.add(EMPTY_UNIT);
 		}
-		
+
 		// TODO I think in Java 16 one can remove this, just to make refUnits effectively final
 		var finalRefUnits = Set.copyOf(refUnits);
 
