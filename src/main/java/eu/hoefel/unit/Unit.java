@@ -75,7 +75,8 @@ public interface Unit {
 	public double factor(String symbol);
 
 	/**
-	 * Gets the {@link Unit units} and their exponents corresponding to this unit.
+	 * Gets the base {@link Unit units} and their exponents corresponding to this
+	 * unit.
 	 * 
 	 * @return the base SI units and their exponents
 	 */
@@ -142,7 +143,7 @@ public interface Unit {
 	 */
 	public static Unit of(String units, Unit[]... extraUnits) {
 		String trimmedUnits = Strings.trim(units);
-		
+
 		Unit[] flatExtraUnits = Units.flattenUnits(extraUnits);
 		Unit[][] allExtraUnits = extraUnits;
 		if (flatExtraUnits.length == 0) {
@@ -173,7 +174,7 @@ public interface Unit {
 		}
 
 		UnitInfo[] infoArray = infos.stream().toArray(UnitInfo[]::new);
-		
+
 		StringBasedUnit stringBasedUnitInfo = new StringBasedUnit(trimmedUnits, Set.of(flatExtraUnits));
 		if (infoArray.length == 1) {
 			return Units.specialUnits.computeIfAbsent(stringBasedUnitInfo, s -> noncompositeUnitOf(trimmedUnits, infoArray, finalAllExtraUnits));
@@ -197,13 +198,13 @@ public interface Unit {
 	private static UnitInfo[] parseLogarithmicUnits(String units, Unit[]... extraUnits) {
 		Matcher m = Units.LOG_UNIT_WITH_REF.matcher(units);
 		List<UnitInfo> infos = new ArrayList<>();
-		
+
 		while (m.find()) {
 			if (m.groupCount() != 5) {
 				throw new IllegalArgumentException("Logarithmic unit with wrong number of captured groups found. "
 						+ "Expected 5 groups, but found " + m.groupCount());
 			}
-			
+
 			int exponent = m.group(2).isEmpty() ? 0 : Integer.parseInt(m.group(2));
 			exponent += m.group(5).isEmpty() ? 0 : Integer.parseInt(m.group(5));
 
@@ -211,14 +212,14 @@ public interface Unit {
 			// of a better way to handle the whitespace-including symbols of the LevelUnits
 			// with respect to some other unit at the moment
 			Unit u = switch (m.group(1)) {
-				case "log" -> LevelUnit.BEL.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
-				case "ln" -> LevelUnit.NEPER.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
-				default -> throw new IllegalArgumentException("Cannot identify corresponding LevelUnit. "
-						+ "Known are log->BEL and ln->NEPER, but you asked for " + m.group(1));
+			case "log" -> LevelUnit.BEL.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
+			case "ln" -> LevelUnit.NEPER.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
+			default -> throw new IllegalArgumentException("Cannot identify corresponding LevelUnit. "
+					+ "Known are log->BEL and ln->NEPER, but you asked for " + m.group(1));
 			};
 			infos.add(new UnitInfo(Units.IDENTITY_PREFIX, u, m.group(), exponent));
 		}
-		
+
 		return infos.stream().toArray(UnitInfo[]::new);
 	}
 
@@ -302,7 +303,7 @@ public interface Unit {
 		DoubleUnaryOperator toBase = Units.internalConversionOperation(infos, baseUnitInfo);
 		DoubleUnaryOperator fromBase = Units.internalConversionOperation(baseUnitInfo, infos);
 		Set<Unit> compatibleUnits = Set.of(Units.flattenUnits(extraUnits));
-	
+
 		return new Unit() {
 			// Note that we do not override equals and hashcode here, as this unit is only
 			// accessible via the concurrent map, so there should always be at most one
