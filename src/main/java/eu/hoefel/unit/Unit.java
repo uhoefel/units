@@ -194,6 +194,7 @@ public interface Unit {
 	 *                   the string
 	 * @return the unit infos of the found logarithmic units, or empty if no
 	 *         logarithmic unit is found
+	 * @throws IllegalArgumentException if the logarithmic unit is malformed
 	 */
 	private static UnitInfo[] parseLogarithmicUnits(String units, Unit[]... extraUnits) {
 		Matcher m = Units.LOG_UNIT_WITH_REF.matcher(units);

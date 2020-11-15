@@ -503,6 +503,8 @@ public final class Units {
 	 * @param origin the original unit
 	 * @param target the target unit
 	 * @return the conversion factor
+	 * @throws IllegalArgumentException if the conversion is not possible for the
+	 *                                  given units
 	 */
 	public static final double factor(Unit origin, Unit target) {
 		if (origin == target) {
@@ -556,6 +558,8 @@ public final class Units {
 	 * @param origin the original unit
 	 * @param target the target unit
 	 * @return the converted value
+	 * @throws IllegalArgumentException if the conversion cannot be performed for
+	 *                                  the given units
 	 */
 	public static final double convert(double value, Unit origin, Unit target) {
 		if (origin == target) {
@@ -665,6 +669,8 @@ public final class Units {
 	 * @param targetInfos the infos about the target units in the same format as the
 	 *                    {@code originInfos}
 	 * @return the conversion factor
+	 * @throws IllegalArgumentException if the conversion would require
+	 *                                  non-multiplicative operations
 	 */
 	private static final double internalFactor(Object origin, Object target, UnitInfo[] originInfos, UnitInfo[] targetInfos) {
 		BaseConversionInfo cleanOriginInfos = cleanup(originInfos);
@@ -759,11 +765,11 @@ public final class Units {
 	/**
 	 * Checks whether the original units (or rather their representation in base
 	 * units) is compatible to the target units (again, via their representation in
-	 * base units). Throws an IllegalArgumentException if the conversion is not
-	 * possible.
+	 * base units).
 	 * 
 	 * @param origin the original units represented in base units
 	 * @param target the target units represented in base units
+	 * @throws IllegalArgumentException if the conversion is not possible
 	 */
 	private static final void sanityCheck(Map<Unit, Integer> origin, Map<Unit, Integer> target) {
 		for (var originBaseUnit : origin.entrySet()) {

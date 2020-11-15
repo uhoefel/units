@@ -316,13 +316,16 @@ public interface Constant extends Texable {
 	}
 
 	/**
-	 * Gets the {@code n}th root of the numeric value, the uncertainty, and the units.
-	 * The unit exponents need to remain integers for this to work!
+	 * Gets the {@code n}th root of the numeric value, the uncertainty, and the
+	 * units. The unit exponents need to remain integers for this to work!
 	 * 
 	 * @implSpec The default implementation assumes the uncertainty of the current
 	 *           constant is one standard deviation of a Gaussian distribution.
 	 * @param n the root exponent
 	 * @return the nth root of the constant
+	 * @throws UnsupportedOperationException if taking the nth root of the constants
+	 *                                       units would yield non-integer exponents
+	 *                                       of the unit
 	 */
 	default Constant root(int n) {
 		double resultingValue = Math.pow(value(), 1.0 / n);
