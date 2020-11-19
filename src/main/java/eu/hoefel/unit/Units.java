@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -133,6 +134,8 @@ public final class Units {
 		DEFAULT_PREFIXES = Collections.unmodifiableSet(defPrefixes);
 	}
 
+	private static final Logger logger = Logger.getLogger(Units.class.getName());
+
 	/**
 	 * Compares two symbols, first by checking if uppercase letters get used (if so,
 	 * the symbol is considered smaller), second by checking the symbol length and
@@ -142,7 +145,6 @@ public final class Units {
 	 * units, which this one does not.
 	 */
 	public static final Comparator<String> COMPARATOR_FOR_UNIT_ORDERING = (symbol1, symbol2) -> {
-
 		boolean refUnit1HasUppercase = symbol1.chars().anyMatch(c -> Character.isLetter(c) && Character.isUpperCase(c));
 		boolean refUnit2HasUppercase = symbol2.chars().anyMatch(c -> Character.isLetter(c) && Character.isUpperCase(c));
 
@@ -193,6 +195,13 @@ public final class Units {
 	 * @return the unknown unit, not intended to be exposed to users
 	 */
 	public static final Unit unknownUnit(String unit) {
+		// pretty sure something is not quite right if the size grows to more than 1k
+		// entries, so better warn the user from time to time
+		int size = unknownUnits.size();
+		if (size >= 1_000 && size % 100 == 0) {
+			logger.info("Currently, %d unknown units have been cached. This seems quite high.");
+		}
+
 		return unknownUnits.computeIfAbsent(unit, u -> new Unit() {
 			@Override public List<String> symbols() { return List.of(u); }
 			@Override public Set<UnitPrefix> prefixes() { return Set.of(); }
@@ -942,6 +951,9 @@ public final class Units {
 		// TODO I think in Java 16 one can remove this, just to make refUnits effectively final
 		var finalRefUnits = Set.copyOf(refUnits);
 
+		// make sure we don't get a gigantic cache over time
+		if (simplifiedUnits.size() > 100) simplifiedUnits.clear();
+
 		return simplifiedUnits.computeIfAbsent(new StringBasedUnit(units, refUnits), k -> {
 			var compatibleSymbols = searchSimplificationSpace(units, finalRefUnits, extraUnits);
 
@@ -1130,6 +1142,12 @@ public final class Units {
 	 * @return the unit as in the internal caching map
 	 */
 	public static final Unit computeSpecialUnitIfAbsent(String symbol, Set<Unit> compatibleUnits, Supplier<Unit> unitSupplier) {
+		// pretty sure something is not quite right if the size grows to more than 1k
+		// entries, so better warn the user from time to time
+		int size = specialUnits.size();
+		if (size >= 1_000 && size % 100 == 0) {
+			logger.info("Currently, %d special units have been cached. This seems quite high.");
+		}
 		return specialUnits.computeIfAbsent(new StringBasedUnit(symbol, compatibleUnits), s -> unitSupplier.get());
 	}
 }
