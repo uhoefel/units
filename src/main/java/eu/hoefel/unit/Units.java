@@ -1150,4 +1150,83 @@ public final class Units {
 		}
 		return specialUnits.computeIfAbsent(new StringBasedUnit(symbol, compatibleUnits), s -> unitSupplier.get());
 	}
+
+	/**
+	 * Gets the exponent of the value if written in scientific notation, i.e.
+	 * "141.18754" will return 2.
+	 * 
+	 * @param x the value to get the exponent for
+	 * @return the exponent
+	 */
+	public static final int getBase10Exponent(double x) {
+		double abs = Math.abs(x);
+		int exp = 0;
+
+		if (abs > 10) {
+			do {
+				exp++;
+				abs *= 0.1;
+			} while (abs >= 10);
+		} else if (abs < 1) {
+			do {
+				exp--;
+				abs *= 10;
+			} while (abs < 1);
+		}
+
+		return exp;
+	}
+
+	public static final Unit reduce(double value, Unit unit, double target) {
+		int targetExponent = getBase10Exponent(target);
+		double targetMantissa = target / Math.pow(10, targetExponent);
+		
+		int exponent = getBase10Exponent(value);
+		double mantissa = Math.abs(targetMantissa - value / Math.pow(10, exponent));
+
+		exponent = Math.abs(targetExponent - exponent);
+		
+		String fullSymbol = unit.symbols().get(0);
+		
+		UnitInfo[] infos = collectInfo(fullSymbol);
+		if (infos.length > 1) throw new RuntimeException();
+		
+		Unit baseUnit = infos[0].unit();
+		String symbol = infos[0].symbol() + (infos[0].exponent() == 0 ? "" : "^" + infos[0].exponent());
+		
+		Unit unitWithoutPrefix = Unit.of(symbol, new Unit[] { baseUnit });
+		value = unit.convertToBaseUnits(value);
+
+		Unit returnUnit = unit;
+		Set<UnitPrefix> allowedPrefixes = unit.prefixes();
+		for (UnitPrefix prefix : allowedPrefixes) {
+			String prefixSymbol = prefix.symbols().get(0);
+			if (unitWithoutPrefix.prefixAllowed(prefixSymbol)) {
+				Unit potentialUnit = Unit.of(prefixSymbol + symbol, new Unit[] { unitWithoutPrefix });
+				double potentialValue = convert(value, unitWithoutPrefix, potentialUnit);
+				int potentialExponent = getBase10Exponent(potentialValue);
+				double potentialMantissa =  Math.abs(targetMantissa - potentialValue / Math.pow(10, potentialExponent));
+				potentialExponent = Math.abs(targetExponent - potentialExponent);
+				if (potentialExponent < exponent || (potentialExponent == exponent && potentialMantissa < mantissa)) {
+					exponent = potentialExponent;
+					mantissa = potentialMantissa;
+					returnUnit = potentialUnit;
+				}
+			}
+		}
+		return returnUnit;
+	}
+
+	public static void main(String[] args) {
+//		System.out.println(convert(1, "km^3", "mm^3"));
+//		System.out.println(convert(1e19, "km^-3", "mm^-3"));
+//		System.out.println(Units.reduce(1e19, Unit.of("km^-3"), 1).symbols());
+		
+		// try to get as close as possible to target
+		double target = 1e6;
+		System.out.println(Units.reduce(1e19, Unit.of("m^-3"), target).symbols());
+		
+		Units.convert(1.0, Unit.of("number_of_people m^2"), Unit.of("number_of_people km^2"));
+		Unit.of("number_of_people");
+	}
 }

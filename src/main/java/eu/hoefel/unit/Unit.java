@@ -145,17 +145,17 @@ public interface Unit {
 		String trimmedUnits = Strings.trim(units);
 
 		Unit[] flatExtraUnits = Units.flattenUnits(extraUnits);
-		Unit[][] allExtraUnits = extraUnits;
+		Unit[][] allNondefaultExtraUnits = extraUnits;
 		if (flatExtraUnits.length == 0) {
 			flatExtraUnits = Units.DEFAULT_UNITS.stream().toArray(Unit[]::new);
-			allExtraUnits = new Unit[0][];
+			allNondefaultExtraUnits = new Unit[0][];
 		}
 
 		// TODO only there to have an effective final version of the variable...
-		Unit[][] finalAllExtraUnits = allExtraUnits;
+		Unit[][] finalAllExtraUnits = allNondefaultExtraUnits;
 
 		String[] unitParts = Units.LOG_UNIT_WITH_REF.split(trimmedUnits);
-		UnitInfo[] logUnits = parseLogarithmicUnits(trimmedUnits, allExtraUnits);
+		UnitInfo[] logUnits = parseLogarithmicUnits(trimmedUnits, allNondefaultExtraUnits);
 
 		// add the logarithmic unit infos at the right position
 		List<UnitInfo> infos = new ArrayList<>();
@@ -163,7 +163,7 @@ public interface Unit {
 		for (int i = 0; i < unitParts.length; i++) {
 			String trimmedUnitPart = Strings.trim(unitParts[i]);
 			if (!trimmedUnitPart.isEmpty()) {
-				Collections.addAll(infos, Units.collectInfo(trimmedUnitPart, allExtraUnits));
+				Collections.addAll(infos, Units.collectInfo(trimmedUnitPart, allNondefaultExtraUnits));
 			}
 			if (logUnitCounter < logUnits.length) infos.add(logUnits[logUnitCounter++]);
 		}
@@ -180,6 +180,68 @@ public interface Unit {
 			return Units.specialUnits.computeIfAbsent(stringBasedUnitInfo, s -> noncompositeUnitOf(trimmedUnits, infoArray, finalAllExtraUnits));
 		}
 		return Units.specialUnits.computeIfAbsent(stringBasedUnitInfo, s -> compositeUnitOf(trimmedUnits, infoArray, finalAllExtraUnits));
+		
+		
+		
+		
+		
+		
+		
+		
+		
+//		String trimmedUnits = Strings.trim(units);
+//
+//		Unit[] flatExtraUnits = Units.flattenUnits(extraUnits);
+////		Unit[][] allExtraUnits = extraUnits;
+////		if (flatExtraUnits.length == 0) {
+////			flatExtraUnits = Units.DEFAULT_UNITS.stream().toArray(Unit[]::new);
+////			allExtraUnits = new Unit[0][];
+////		}
+//		
+//		// TODO compatible units
+//
+//		
+//		List<Unit> flunits = new ArrayList<>(List.of(flatExtraUnits));
+//		int size = flunits.size();
+//		
+//		if (flunits.isEmpty()) flunits.addAll(Units.DEFAULT_UNITS);
+//		
+//		for (int i = 0; i < size; i++) {
+//			flunits.addAll(flunits.get(i).compatibleUnits());
+//		}
+//		Unit[] allExtraUnits = flunits.stream().distinct().toArray(Unit[]::new);
+//		
+//		
+//
+////		// TODO only there to have an effective final version of the variable...
+////		Unit[][] finalAllExtraUnits = allExtraUnits;
+//
+//		String[] unitParts = Units.LOG_UNIT_WITH_REF.split(trimmedUnits);
+//		UnitInfo[] logUnits = parseLogarithmicUnits(trimmedUnits, allExtraUnits);
+//
+//		// add the logarithmic unit infos at the right position
+//		List<UnitInfo> infos = new ArrayList<>();
+//		int logUnitCounter = 0;
+//		for (int i = 0; i < unitParts.length; i++) {
+//			String trimmedUnitPart = Strings.trim(unitParts[i]);
+//			if (!trimmedUnitPart.isEmpty()) {
+//				Collections.addAll(infos, Units.collectInfo(trimmedUnitPart, allExtraUnits));
+//			}
+//			if (logUnitCounter < logUnits.length) infos.add(logUnits[logUnitCounter++]);
+//		}
+//
+//		// remaining logarithmic units
+//		while (logUnitCounter < logUnits.length) {
+//			infos.add(logUnits[logUnitCounter++]);
+//		}
+//
+//		UnitInfo[] infoArray = infos.stream().toArray(UnitInfo[]::new);
+//
+//		StringBasedUnit stringBasedUnitInfo = new StringBasedUnit(trimmedUnits, Set.of(flatExtraUnits));
+//		if (infoArray.length == 1) {
+//			return Units.specialUnits.computeIfAbsent(stringBasedUnitInfo, s -> noncompositeUnitOf(trimmedUnits, infoArray, allExtraUnits));
+//		}
+//		return Units.specialUnits.computeIfAbsent(stringBasedUnitInfo, s -> compositeUnitOf(trimmedUnits, infoArray, allExtraUnits));
 	}
 
 	/**
@@ -213,10 +275,10 @@ public interface Unit {
 			// of a better way to handle the whitespace-including symbols of the LevelUnits
 			// with respect to some other unit at the moment
 			Unit u = switch (m.group(1)) {
-			case "log" -> LevelUnit.BEL.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
-			case "ln" -> LevelUnit.NEPER.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
-			default -> throw new IllegalArgumentException("Cannot identify corresponding LevelUnit. "
-					+ "Known are log->BEL and ln->NEPER, but you asked for " + m.group(1));
+				case "log" -> LevelUnit.BEL.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
+				case "ln" -> LevelUnit.NEPER.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
+				default -> throw new IllegalArgumentException("Cannot identify corresponding LevelUnit. "
+						+ "Known are log->BEL and ln->NEPER, but you asked for " + m.group(1));
 			};
 			infos.add(new UnitInfo(Units.IDENTITY_PREFIX, u, m.group(), exponent));
 		}
@@ -248,7 +310,7 @@ public interface Unit {
 		}
 
 		Unit unit = infos[0].unit();
-		boolean prefixAllowed = isIdentityPrefix && unit.prefixAllowed(units);
+		boolean prefixAllowed = isIdentityPrefix && unit.prefixAllowed(infos[0].symbol());
 
 		// if the exponent is not 1, it is not the base unit, i.e., "m^2" is not a base unit
 		boolean isBasic = unit.isBasic() && infos[0].exponent() == 1;
