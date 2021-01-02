@@ -14,6 +14,7 @@ import eu.hoefel.jatex.LatexPreambleEntry;
 import eu.hoefel.jatex.Texable;
 import eu.hoefel.unit.Unit;
 import eu.hoefel.unit.Units;
+import eu.hoefel.utils.Maths;
 import eu.hoefel.utils.Regexes;
 import eu.hoefel.utils.Strings;
 
@@ -104,6 +105,39 @@ public interface Constant extends Texable {
 			}
 			@Override public int hashCode() { return Objects.hash(value(), uncertainty(), unit()); }
 		};
+	}
+
+	/**
+	 * Creates a new generic constant with a value, no uncertainty and potentially a
+	 * unit.
+	 * <p>
+	 * For example:<br>
+	 * {@code Constant.of("3m^2");} or <br>
+	 * {@code Constant.of("3.435789 s");} or <br>
+	 * 
+	 * @param str        the string containing a number and potentially a unit
+	 * @param extraUnits the additional units to use for the conversion
+	 * @return a new generic constant
+	 */
+	public static Constant of(String str, Unit[]... extraUnits) {
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (!Character.isDigit(c) || c != '.') {
+				String number = str.substring(0, i);
+				if (!Maths.isDouble(number)) {
+					throw new IllegalArgumentException("Found no valid number for the constant!");
+				}
+				String unit = str.substring(i);
+				
+				return Constant.of(Double.valueOf(number), 0, Unit.of(unit, extraUnits));
+			}
+		}
+		
+		if (!Maths.isDouble(str)) {
+			throw new IllegalArgumentException("Found no valid number for the constant!");
+		}
+		
+		return Constant.of(Double.valueOf(str));
 	}
 
 	/**
