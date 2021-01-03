@@ -120,24 +120,60 @@ public interface Constant extends Texable {
 	 * @return a new generic constant
 	 */
 	public static Constant of(String str, Unit[]... extraUnits) {
-		for (int i = 0; i < str.length(); i++) {
-			char c = str.charAt(i);
-			if (!Character.isDigit(c) || c != '.') {
-				String number = str.substring(0, i);
+		String trimmed = str.trim();
+		if (trimmed.isEmpty()) {
+			throw new IllegalArgumentException("Found no valid number for the constant!");
+		}
+		for (int i = 0; i < trimmed.length(); i++) {
+			char c = trimmed.charAt(i);
+			if (!Character.isDigit(c) && c != '.') {
+				String number = trimmed.substring(0, i);
 				if (!Maths.isDouble(number)) {
 					throw new IllegalArgumentException("Found no valid number for the constant!");
 				}
-				String unit = str.substring(i);
+				String unit = trimmed.substring(i);
 				
+				if (!Units.isValid(unit, extraUnits)) {
+					throw new IllegalArgumentException("Found no valid unit!");
+				}
 				return Constant.of(Double.valueOf(number), 0, Unit.of(unit, extraUnits));
 			}
 		}
-		
-		if (!Maths.isDouble(str)) {
-			throw new IllegalArgumentException("Found no valid number for the constant!");
+
+		// we know by here that we have only a number
+		return Constant.of(Double.valueOf(trimmed));
+	}
+
+	/**
+	 * Checks whether the given string can be successfully converted into a
+	 * {@link Constant}. Note that this does not check for uncertainties in the
+	 * string.
+	 * <p>
+	 * Examples:<br>
+	 * {@code Constant.isConstant("3m^2")} will yield {@code true}<br>
+	 * {@code Constant.isConstant("3±4s^2")} will yield {@code false}<br>
+	 * 
+	 * @param str        the string to check. Needs to have a number and optionally
+	 *                   a unit.
+	 * @param extraUnits the additional units to use for the conversion
+	 * @return true if the given string can be converted to a {@link Constant}
+	 */
+	public static boolean isConstant(String str, Unit[]... extraUnits) {
+		String trimmed = str.trim();
+		if (trimmed.isEmpty()) return false;
+		for (int i = 0; i < trimmed.length(); i++) {
+			char c = trimmed.charAt(i);
+			if (!Character.isDigit(c) && c != '.') {
+				String number = trimmed.substring(0, i);
+				if (!Maths.isDouble(number)) {
+					return false;
+				}
+				String unit = trimmed.substring(i);
+				return Units.isValid(unit, extraUnits);
+			}
 		}
 		
-		return Constant.of(Double.valueOf(str));
+		return true;
 	}
 
 	/**

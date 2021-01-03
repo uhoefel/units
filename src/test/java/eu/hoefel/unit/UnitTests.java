@@ -33,6 +33,12 @@ class UnitTests {
 		assertEquals(1000, Units.factor(Unit.of("km"), SiBaseUnit.METER));
 	}
 
+	@DisplayName("Testing dimensionless units")
+	@Test
+	void testDimensionless() {
+		assertTrue(Units.convertible(SiDerivedUnit.RADIAN, Units.EMPTY_UNIT));
+	}
+
 	@DisplayName("Testing convertibility")
 	@Test
 	void testConvertibility() {
