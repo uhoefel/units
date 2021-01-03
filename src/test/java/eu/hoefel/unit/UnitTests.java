@@ -180,4 +180,10 @@ class UnitTests {
 		assertTrue(Units.proportional("kg^2", "J^2"));
 		assertFalse(Units.proportional("W", "W m"));
 	}
+
+	@DisplayName("Testing multiplication")
+	@Test
+	void testMultiplication() {
+		assertTrue(Units.convertible("m^2", "m m"));
+	}
 }

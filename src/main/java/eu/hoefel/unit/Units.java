@@ -27,6 +27,7 @@ import eu.hoefel.unit.level.LevelUnit;
 import eu.hoefel.unit.si.SiBaseUnit;
 import eu.hoefel.unit.si.SiCommonUnit;
 import eu.hoefel.unit.si.SiDerivedUnit;
+import eu.hoefel.utils.Maths;
 import eu.hoefel.utils.Regexes;
 import eu.hoefel.utils.Strings;
 
@@ -947,7 +948,7 @@ public final class Units {
 			// checks against a reference unit plus an empty unit
 			refUnits.add(EMPTY_UNIT);
 		}
-
+		
 		// TODO I think in Java 16 one can remove this, just to make refUnits effectively final
 		var finalRefUnits = Set.copyOf(refUnits);
 
@@ -1151,37 +1152,11 @@ public final class Units {
 		return specialUnits.computeIfAbsent(new StringBasedUnit(symbol, compatibleUnits), s -> unitSupplier.get());
 	}
 
-	/**
-	 * Gets the exponent of the value if written in scientific notation, i.e.
-	 * "141.18754" will return 2.
-	 * 
-	 * @param x the value to get the exponent for
-	 * @return the exponent
-	 */
-	public static final int getBase10Exponent(double x) {
-		double abs = Math.abs(x);
-		int exp = 0;
-
-		if (abs > 10) {
-			do {
-				exp++;
-				abs *= 0.1;
-			} while (abs >= 10);
-		} else if (abs < 1) {
-			do {
-				exp--;
-				abs *= 10;
-			} while (abs < 1);
-		}
-
-		return exp;
-	}
-
 	public static final Unit reduce(double value, Unit unit, double target) {
-		int targetExponent = getBase10Exponent(target);
+		int targetExponent = Maths.getBase10Exponent(target);
 		double targetMantissa = target / Math.pow(10, targetExponent);
 		
-		int exponent = getBase10Exponent(value);
+		int exponent = Maths.getBase10Exponent(value);
 		double mantissa = Math.abs(targetMantissa - value / Math.pow(10, exponent));
 
 		exponent = Math.abs(targetExponent - exponent);
@@ -1204,7 +1179,7 @@ public final class Units {
 			if (unitWithoutPrefix.prefixAllowed(prefixSymbol)) {
 				Unit potentialUnit = Unit.of(prefixSymbol + symbol, new Unit[] { unitWithoutPrefix });
 				double potentialValue = convert(value, unitWithoutPrefix, potentialUnit);
-				int potentialExponent = getBase10Exponent(potentialValue);
+				int potentialExponent = Maths.getBase10Exponent(potentialValue);
 				double potentialMantissa =  Math.abs(targetMantissa - potentialValue / Math.pow(10, potentialExponent));
 				potentialExponent = Math.abs(targetExponent - potentialExponent);
 				if (potentialExponent < exponent || (potentialExponent == exponent && potentialMantissa < mantissa)) {
