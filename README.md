@@ -46,6 +46,7 @@ Some of the supported features include:
   Units.convertible("s", "min");
   ```
   will return `true`.
+- tightly integrated in the [coordinates](https://github.com/uhoefel/coordinates) library
 
 The constants are implemented via a `Constant` interface that supports e.g.:
 - definition of own constants, e.g.
