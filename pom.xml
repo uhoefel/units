@@ -5,7 +5,7 @@
 
 	<groupId>eu.hoefel</groupId>
 	<artifactId>units</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>jar</packaging>
 
 	<name>units</name>
@@ -75,7 +75,7 @@
 		<dependency>
 			<groupId>eu.hoefel</groupId>
 			<artifactId>utils</artifactId>
-			<version>0.1.1</version>
+			<version>0.1.13</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.hoefel</groupId>

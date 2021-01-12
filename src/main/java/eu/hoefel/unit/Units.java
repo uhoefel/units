@@ -320,7 +320,7 @@ public final class Units {
 	 * @param extraUnits additional units to check against
 	 * @return info of the decoded units
 	 */
-	static final UnitInfo[] collectInfo(String units, Unit[]... extraUnits) {
+	public static final UnitInfo[] collectInfo(String units, Unit[]... extraUnits) {
 		String[] unitsRaw = Regexes.ALL_SPACE.split(units.trim());
 		UnitInfo[] unitInfo = new UnitInfo[unitsRaw.length];
 		for (int i = 0; i < unitsRaw.length; i++) {
