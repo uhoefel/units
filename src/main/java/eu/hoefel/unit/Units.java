@@ -1,5 +1,6 @@
 package eu.hoefel.unit;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -10,17 +11,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Supplier;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
+import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
+import eu.hoefel.unit.Unit.StringRange;
 import eu.hoefel.unit.binary.BinaryUnit;
 import eu.hoefel.unit.context.PhysicsContext;
 import eu.hoefel.unit.level.LevelUnit;
@@ -55,33 +58,37 @@ public final class Units {
 	 * 
 	 * @author Udo Hoefel
 	 */
-	static record StringBasedUnit(String units, Set<Unit> extraUnits) {}
+	private static record StringBasedUnit(String units, Set<Unit> extraUnits) {}
+	
+	/** Empty units, mainly for use within (some) implementations of {@link Unit}. */
+	public static final Set<Unit> EMPTY_UNITS = Set.of();
+
+	/**
+	 * Empty unit prefixes, mainly for use within (some) implementations of
+	 * {@link Unit}.
+	 */
+	public static final Set<UnitPrefix> EMPTY_PREFIXES = Set.of();
 
 	/** The "Unit" of "no unit". */
-	public static final Unit EMPTY_UNIT = new Unit() {
-		@Override public List<String> symbols() { return List.of(""); }
-		@Override public Set<UnitPrefix> prefixes() { return Set.of(); }
-		@Override public boolean prefixAllowed(String symbol) { return false; }
-		@Override public boolean isBasic() { return true; }
-		@Override public Map<Unit, Integer> baseUnits() { return Map.of(); }
-		@Override public double factor(String symbol) { return 1; }
-		@Override public double convertToBaseUnits(double value) { return value; }
-		@Override public double convertFromBaseUnits(double value) { return value; }
-		@Override public boolean canUseFactor() { return true; }
-		@Override public Set<Unit> compatibleUnits() { return EMPTY_UNITS; }
-	};
+	public static final Unit EMPTY_UNIT = new DynamicUnit(List.of(""), EMPTY_PREFIXES, s -> false, true, s -> 1,
+			DoubleUnaryOperator.identity(), DoubleUnaryOperator.identity(), true, Map.of(), EMPTY_UNITS);
 
 	/** Represents a "prefix" with no symbol and a factor of 1. */
 	public static final UnitPrefix IDENTITY_PREFIX = new UnitPrefix() {
 		@Override public List<String> symbols() { return List.of(""); }
 		@Override public double factor() { return 1; }
+		@Override public String toString() { return "IDENTITY_PREFIX[symbols=" + symbols() + ", factor=" + factor() + "]"; }
+		@Override public int hashCode() { return Objects.hash(symbols(), factor()); }
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj instanceof UnitPrefix other) {
+				return Objects.equals(symbols(), other.symbols()) && factor() == other.factor();
+			}
+			return false;
+		}
 	};
-
-	/** Map for holding unknown units, ensuring that each "type" of unknown unit exists only once. */
-	private static final ConcurrentMap<String, Unit> unknownUnits = new ConcurrentHashMap<>();
-
-	/** Map for holding composite units, ensuring that each "type" of composite unit exists only once. */
-	static final ConcurrentMap<StringBasedUnit, Unit> specialUnits = new ConcurrentHashMap<>();
 
 	/**
 	 * Map for holding simplifications of specified string based units, ensuring that
@@ -105,18 +112,6 @@ public final class Units {
 	 */
 	public static final Set<UnitPrefix> DEFAULT_PREFIXES;
 
-	/** Empty units, mainly for use within (some) implementations of {@link Unit}. */
-	public static final Set<Unit> EMPTY_UNITS = Set.of();
-
-	/**
-	 * Empty unit prefixes, mainly for use within (some) implementations of
-	 * {@link Unit}.
-	 */
-	public static final Set<UnitPrefix> EMPTY_PREFIXES = Set.of();
-
-	/** Pattern for a logarithmic quantity with respect to some reference value and unit. */
-	static final Pattern LOG_UNIT_WITH_REF = Pattern.compile("(log|ln)\\^{0,1}(\\d*)\\(re[\\h, ](\\d+\\.?\\d*)[\\h, ](.*?)\\)\\^{0,1}(\\d*)");
-
 	static {
 		Set<Unit> defUnits = new LinkedHashSet<>();
 		Collections.addAll(defUnits, SiBaseUnit.values());
@@ -134,7 +129,11 @@ public final class Units {
 		DEFAULT_PREFIXES = Collections.unmodifiableSet(defPrefixes);
 	}
 
-	private static final Logger logger = Logger.getLogger(Units.class.getName());
+	/** Key for the exponent in maps. */
+	private static final String EXPONENT = "exponent";
+
+	/** Key for the factor in maps. */
+	private static final String FACTOR = "factor";
 
 	/**
 	 * Compares two symbols, first by checking if uppercase letters get used (if so,
@@ -189,45 +188,33 @@ public final class Units {
 	}
 
 	/**
-	 * Represents an unknown unit. Each unknown unit will be instantiated only once.
+	 * Represents an unknown unit.
 	 * 
 	 * @param unit the symbol of the unknown unit
-	 * @return the unknown unit, not intended to be exposed to users
+	 * @return the unknown unit
 	 */
 	public static final Unit unknownUnit(String unit) {
-		// pretty sure something is not quite right if the size grows to more than 1k
-		// entries, so better warn the user from time to time
-		int size = unknownUnits.size();
-		if (size >= 1_000 && size % 100 == 0) {
-			logger.info("Currently, %d unknown units have been cached. This seems quite high.");
-		}
-
-		return unknownUnits.computeIfAbsent(unit, u -> new Unit() {
-			@Override public List<String> symbols() { return List.of(u); }
-			@Override public Set<UnitPrefix> prefixes() { return Set.of(); }
-			@Override public boolean prefixAllowed(String symbol) { return false; }
-			@Override public boolean isBasic() { return true; }
-			@Override public Map<Unit, Integer> baseUnits() { return Map.of(this, 1); }
-			@Override public double factor(String symbol) { return 1; }
-			@Override public double convertToBaseUnits(double value) { return value; }
-			@Override public double convertFromBaseUnits(double value) { return value; }
-			@Override public boolean canUseFactor() { return true; }
-			@Override public Set<Unit> compatibleUnits() { return EMPTY_UNITS; }
-		});
-	}
-
-	/**
-	 * This checks whether the given unit has already been used via
-	 * {@link #unknownUnit(String)}. Consequently, one does not need to fill the map
-	 * unnecessarily with strings, just to check if a {@link Unit} potentially is an
-	 * unknown unit.
-	 * 
-	 * @param unit the unit to check
-	 * @return true if {@link #unknownUnit(String)} has been called before with the
-	 *         string specified here
-	 */
-	public static final boolean knownUnknownUnit(String unit) {
-		return unknownUnits.containsKey(unit);
+		List<String> symbols = List.of(unit);
+		Predicate<String> prefixAllowed = s -> false;
+		boolean isBasic = true;
+		ToDoubleFunction<String> factor = s -> 1;
+		DoubleUnaryOperator toBase = DoubleUnaryOperator.identity();
+		DoubleUnaryOperator fromBase = DoubleUnaryOperator.identity();
+		boolean canUseFactor = true;
+		Map<Unit, Integer> baseUnits = Map.of();
+		Unit innerUnit = new DynamicUnit(symbols, EMPTY_PREFIXES, prefixAllowed, isBasic, factor, toBase, fromBase, canUseFactor, baseUnits, EMPTY_UNITS);
+		
+		baseUnits = Map.of(innerUnit, 1);
+		return new DynamicUnit(symbols, 
+				EMPTY_PREFIXES, 
+				prefixAllowed, 
+				isBasic, 
+				factor, 
+				toBase, 
+				fromBase, 
+				canUseFactor, 
+				baseUnits, 
+				EMPTY_UNITS);
 	}
 
 	/**
@@ -248,7 +235,7 @@ public final class Units {
 				sb.append(", ");
 			}
 			String symbol = unit.symbols().get(0);
-			if (knownUnknownUnit(symbol) && unit.equals(unknownUnit(symbol))) {
+			if (unit.equals(unknownUnit(symbol))) {
 				sb.append(symbol + " (unknown unit)");
 			} else {
 				sb.append(unit.symbols().get(0));
@@ -268,10 +255,12 @@ public final class Units {
 		StringBuilder sb = new StringBuilder();
 		for (var unitInfo : info.entrySet()) {
 			if (!sb.isEmpty()) sb.append(Strings.NON_BREAKABLE_SPACE);
-			sb.append(unitInfo.getKey().symbols().get(0));
 			if (unitInfo.getValue() != 0) {
-				sb.append("^");
-				sb.append(unitInfo.getValue().toString());
+				sb.append(unitInfo.getKey().symbols().get(0));
+				if (unitInfo.getValue() != 1) {
+					sb.append("^");
+					sb.append(unitInfo.getValue().toString());
+				}
 			}
 		}
 		return sb.toString();
@@ -318,14 +307,49 @@ public final class Units {
 	 * 
 	 * @param units      the units, e.g. "kg^2 s^-1"
 	 * @param extraUnits additional units to check against
-	 * @return info of the decoded units
+	 * @return info of the decoded units and their position in the given string
 	 */
-	public static final UnitInfo[] collectInfo(String units, Unit[]... extraUnits) {
+	public static final NavigableMap<StringRange, UnitInfo> collectInfo(String units, Unit[]... extraUnits) {
+		return provideUnitInfo(units, Units::checkUnits, extraUnits);
+	}
+
+	/**
+	 * Collects the info necessary for further conversion operations for the
+	 * specified units. In contrast to {@link #collectInfo(String, Unit[]...)} this
+	 * adds an unknown unit if no matching unit is found. All separate units have to
+	 * be separated by a space, prefixes have to be prepended (without a separating
+	 * space) to their unit, exponents have to be specified by appending (without a
+	 * separating space) "^" plus the value of the exponent to the unit. Example:
+	 * "km^2 s^-1". If additional units, not (yet) in the standard implementations,
+	 * are needed for the conversions, they can be supplied via {@code extraUnits}.
+	 * 
+	 * @param units      the units, e.g. "kg^2 s^-1"
+	 * @param extraUnits additional units to check against
+	 * @return info of the decoded units and their position in the given string
+	 */
+	private static final NavigableMap<StringRange, UnitInfo> collectInfoWithUnknownUnits(String units, Unit[]... extraUnits) {
+		return provideUnitInfo(units, Units::checkUnitsWithUnknownUnit, extraUnits);
+	}
+
+	// TODO
+	private static final NavigableMap<StringRange, UnitInfo> provideUnitInfo(String units, BiFunction<String[], Unit[][], UnitInfo> check, Unit[]... extraUnits) {
 		String[] unitsRaw = Regexes.ALL_SPACE.split(units.trim());
-		UnitInfo[] unitInfo = new UnitInfo[unitsRaw.length];
+		String[][] unitPower = new String[unitsRaw.length][];
 		for (int i = 0; i < unitsRaw.length; i++) {
-			String[] unitPower = Regexes.EXPONENT.split(unitsRaw[i].trim());
-			unitInfo[i] = checkUnits(unitPower, extraUnits);
+			unitPower[i] = Regexes.EXPONENT.split(unitsRaw[i].trim());
+		}
+		return provideUnitInfoWithRegexesAlreadyApplied(units, unitsRaw, unitPower, check, extraUnits);
+	}
+
+	// TODO
+	static final NavigableMap<StringRange, UnitInfo> provideUnitInfoWithRegexesAlreadyApplied(String units, String[] unitsRaw, String[][] unitPower, BiFunction<String[], Unit[][], UnitInfo> check, Unit[]... extraUnits) {
+		NavigableMap<StringRange, UnitInfo> unitInfo = new TreeMap<>();
+		int position = 0;
+		for (int i = 0; i < unitsRaw.length; i++) {
+			int startIndex = units.indexOf(unitsRaw[i], position);
+			position = startIndex + unitsRaw[i].length();
+			var info = check.apply(unitPower[i], extraUnits);
+			if (info != null) unitInfo.put(new StringRange(startIndex, position), info);
 		}
 		return unitInfo;
 	}
@@ -337,14 +361,16 @@ public final class Units {
 	 * @param unit the unit
 	 * @return info for further operations, in the format: ret[0] contains info
 	 *         about the prefix, the SI unit and the corresponding symbol, ret[1]
-	 *         contains the corresponding exponent
+	 *         contains the corresponding exponent TODO
 	 */
-	private static final UnitInfo[] collectInfo(Unit unit) {
+	private static final NavigableMap<StringRange, UnitInfo> collectInfo(Unit unit) {
 		// we just need that prefix in all further operations anyways to just give us a
 		// factor of 1, which this does
 		UnitPrefix prefix = IDENTITY_PREFIX;
 
-		return new UnitInfo[] { new UnitInfo(prefix, unit, unit.symbols().get(0), 1) };
+		NavigableMap<StringRange, UnitInfo> map = new TreeMap<>();
+		map.put(new StringRange(0, Math.max(0, unit.symbols().get(0).length() - 1)), new UnitInfo(prefix, unit, unit.symbols().get(0), 1));
+		return Collections.unmodifiableNavigableMap(map);
 	}
 
 	/**
@@ -355,22 +381,22 @@ public final class Units {
 	 * @param targetInfos the info about the target units
 	 * @return the info containing the units, the symbol(s), and, on the
 	 *         innermost level, the exponent and factor information, accessible via
-	 *         "exponent" and "factor"
+	 *         {@value #EXPONENT} and {@value #FACTOR}
 	 */
-	private static final Map<Unit, Map<String, Map<String, Double>>> collectNonMultiplicativeOperationInfo(UnitInfo[] originInfos,
-			UnitInfo[] targetInfos) {
+	private static final Map<Unit, Map<String, Map<String, Double>>> collectNonMultiplicativeOperationInfo(Collection<UnitInfo> originInfos,
+			Collection<UnitInfo> targetInfos) {
 		Map<Unit, Map<String, Map<String, Double>>> effectiveTransformations = new LinkedHashMap<>();
 		for (UnitInfo info : originInfos) {
 			var unitInfos = effectiveTransformations.computeIfAbsent(info.unit(), s -> new LinkedHashMap<>());
 			var symbolInfos = unitInfos.computeIfAbsent(info.symbol(), s -> new LinkedHashMap<>());
-			symbolInfos.compute("exponent", (k, v) -> (v == null ? 0 : v) + info.exponent());
-			symbolInfos.compute("factor", (k, v) -> (v == null ? 1.0 : v) * info.prefix().factor());
+			symbolInfos.compute(EXPONENT, (k, v) -> (v == null ? 0 : v) + info.exponent());
+			symbolInfos.compute(FACTOR, (k, v) -> (v == null ? 1.0 : v) * info.prefix().factor());
 		}
 		for (UnitInfo info : targetInfos) {
 			var unitInfos = effectiveTransformations.computeIfAbsent(info.unit(), s -> new LinkedHashMap<>());
 			var symbolInfos = unitInfos.computeIfAbsent(info.symbol(), s -> new LinkedHashMap<>());
-			symbolInfos.compute("exponent", (k, v) -> (v == null ? 0 : v) - info.exponent());
-			symbolInfos.compute("factor", (k, v) -> (v == null ? 1.0 : v) / info.prefix().factor());
+			symbolInfos.compute(EXPONENT, (k, v) -> (v == null ? 0 : v) - info.exponent());
+			symbolInfos.compute(FACTOR, (k, v) -> (v == null ? 1.0 : v) / info.prefix().factor());
 		}
 		return effectiveTransformations;
 	}
@@ -384,14 +410,17 @@ public final class Units {
 	 *                   here. If unitParts is of length 2, the second part contains
 	 *                   information about the exponent
 	 * @param extraUnits additional units to check against
-	 * @return the unit info
+	 * @return the unit info or null if no unit has been found
 	 */
-	private static final UnitInfo checkUnits(String[] unitParts, Unit[]... extraUnits) {
+	static final UnitInfo checkUnits(String[] unitParts, Unit[]... extraUnits) {
 		Set<Unit> units;
 		Set<UnitPrefix> prefixes;
 		if (extraUnits.length == 0) {
 			units = DEFAULT_UNITS;
 			prefixes = DEFAULT_PREFIXES;
+		} else if (extraUnits.length == 1 && extraUnits[0].length == 1) {
+			units = Set.of(extraUnits[0][0]);
+			prefixes = Set.copyOf(extraUnits[0][0].prefixes());
 		} else {
 			units = new LinkedHashSet<>();
 			prefixes = new LinkedHashSet<>();
@@ -414,6 +443,24 @@ public final class Units {
 			UnitInfo info = identifyUnitInfo(unitParts, refUnit, prefixes);
 			if (info != null) return info;
 		}
+		
+		return null;
+	}
+
+	/**
+	 * Checks the {@code unit} versus the {@link Units#DEFAULT_UNITS} or the
+	 * given {@code extraUnits} and returns the first successful match.
+	 * 
+	 * @param unitParts  the first index contains the unit to check, e.g. "kg" or
+	 *                   "ms". Multiple units, as well as exponents, are not allowed
+	 *                   here. If unitParts is of length 2, the second part contains
+	 *                   information about the exponent
+	 * @param extraUnits additional units to check against
+	 * @return the unit info
+	 */
+	private static final UnitInfo checkUnitsWithUnknownUnit(String[] unitParts, Unit[]... extraUnits) {
+		UnitInfo info = checkUnits(unitParts, extraUnits);
+		if (info != null) return info;
 
 		// if we get here, the unit is unknown
 		int exponent = unitParts.length == 1 ? 1 : Integer.parseInt(unitParts[1]);
@@ -499,8 +546,8 @@ public final class Units {
 		if (origin == null || target == null || origin.equals(target)) {
 			return 1;
 		}
-		UnitInfo[] originInfos = collectInfo(origin, extraUnits);
-		UnitInfo[] targetInfos = collectInfo(target, extraUnits);
+		var originInfos = collectInfoWithUnknownUnits(origin, extraUnits).values();
+		var targetInfos = collectInfoWithUnknownUnits(target, extraUnits).values();
 
 		return internalFactor(origin, target, originInfos, targetInfos);
 	}
@@ -555,8 +602,8 @@ public final class Units {
 		if (origin == null || target == null || origin.equals(target)) {
 			return value;
 		}
-		UnitInfo[] originInfos = collectInfo(origin, extraUnits);
-		UnitInfo[] targetInfos = collectInfo(target, extraUnits);
+		var originInfos = collectInfoWithUnknownUnits(origin, extraUnits).values();
+		var targetInfos = collectInfoWithUnknownUnits(target, extraUnits).values();
 		return internalConversionOperation(originInfos, targetInfos).applyAsDouble(value);
 	}
 
@@ -614,8 +661,8 @@ public final class Units {
 		} else if (origin.equals(target)) {
 			return true;
 		}
-		UnitInfo[] originInfos = collectInfo(origin, extraUnits);
-		UnitInfo[] targetInfos = collectInfo(target, extraUnits);
+		var originInfos = collectInfoWithUnknownUnits(origin, extraUnits).values();
+		var targetInfos = collectInfoWithUnknownUnits(target, extraUnits).values();
 		return internalConversionCheck(originInfos, targetInfos);
 	}
 
@@ -634,8 +681,8 @@ public final class Units {
 		if (origin == null || target == null) {
 			return false;
 		}
-		UnitInfo[] originInfos = collectInfo(origin);
-		UnitInfo[] targetInfos = collectInfo(target);
+		var originInfos = collectInfo(origin).values();
+		var targetInfos = collectInfo(target).values();
 		return internalConversionCheck(originInfos, targetInfos);
 	}
 
@@ -652,14 +699,7 @@ public final class Units {
 			String[] unitPower = Regexes.EXPONENT.split(unitsRawPart.trim());
 			UnitInfo unitInfo = checkUnits(unitPower, extraUnits);
 
-			// we check if i) the unit is in the map of unknown units and ii) if it is,
-			// whether the resolved unit has the same memory address as the unknown unit.
-			// This is necessary, as we might have a request to, e.g. "bla", which cannot be
-			// parsed as a unit, so is added to the list of unknown units, but is
-			// subsequently used with extra units that do allow to parse "bla", which will
-			// lead to the resolved "bla" now pointing to the proper unit and hence fail the
-			// memory address check.
-			if (unknownUnits.containsKey(unitPower[0]) && unknownUnits.get(unitPower[0]) == unitInfo.unit()) {
+			if (unitInfo == null) {
 				return false;
 			}
 		}
@@ -681,7 +721,7 @@ public final class Units {
 	 * @throws IllegalArgumentException if the conversion would require
 	 *                                  non-multiplicative operations
 	 */
-	private static final double internalFactor(Object origin, Object target, UnitInfo[] originInfos, UnitInfo[] targetInfos) {
+	private static final double internalFactor(Object origin, Object target, Collection<UnitInfo> originInfos, Collection<UnitInfo> targetInfos) {
 		BaseConversionInfo cleanOriginInfos = cleanup(originInfos);
 		BaseConversionInfo cleanTargetInfos = cleanup(targetInfos);
 
@@ -703,7 +743,7 @@ public final class Units {
 	 * @param targetInfos the infos about the target units
 	 * @return the conversion operation
 	 */
-	static final DoubleUnaryOperator internalConversionOperation(UnitInfo[] originInfos, UnitInfo[] targetInfos) {
+	static final DoubleUnaryOperator internalConversionOperation(Collection<UnitInfo> originInfos, Collection<UnitInfo> targetInfos) {
 		BaseConversionInfo cleanOriginInfos = cleanup(originInfos);
 		BaseConversionInfo cleanTargetInfos = cleanup(targetInfos);
 
@@ -720,8 +760,8 @@ public final class Units {
 		return v -> {
 			for (var effectiveTransformation : nonMultiplicativeOperationInfo.entrySet()) {
 				for (var symbolInfo : effectiveTransformation.getValue().entrySet()) {
-					v *= symbolInfo.getValue().get("factor");
-					double exponent = symbolInfo.getValue().get("exponent");
+					v *= symbolInfo.getValue().get(FACTOR);
+					double exponent = symbolInfo.getValue().get(EXPONENT);
 					if (exponent > 0) {
 						Unit u = effectiveTransformation.getKey();
 						if (u.isBasic() && u.canUseFactor()) {
@@ -750,7 +790,7 @@ public final class Units {
 	 * @param targetInfos the info with respect to the target units
 	 * @return true if convertible
 	 */
-	private static final boolean internalConversionCheck(UnitInfo[] originInfos, UnitInfo[] targetInfos) {
+	private static final boolean internalConversionCheck(Collection<UnitInfo> originInfos, Collection<UnitInfo> targetInfos) {
 		Map<Unit, Integer> cleanOriginInfos = cleanup(originInfos).baseUnitInfos();
 		Map<Unit, Integer> cleanTargetInfos = cleanup(targetInfos).baseUnitInfos();
 		return cleanOriginInfos.equals(cleanTargetInfos);
@@ -831,7 +871,7 @@ public final class Units {
 	 * @param infos the unit infos
 	 * @return the information required for conversions to the base units
 	 */
-	static final BaseConversionInfo cleanup(UnitInfo[] infos) {
+	static final BaseConversionInfo cleanup(Collection<UnitInfo> infos) {
 		double factor = 1;
 		Map<Unit, Integer> baseUnitInfos = new LinkedHashMap<>();
 		boolean canUseFactor = true;
@@ -988,6 +1028,9 @@ public final class Units {
 			System.arraycopy(extraUnits, 0, allUnitReferences, 0, extraUnits.length);
 			allUnitReferences[allUnitReferences.length - 1] = refUnits.stream().toArray(Unit[]::new);
 		}
+		
+		Unit originalUnit = Unit.of(units, extraUnits);
+		var baseUnits = originalUnit.baseUnits(); // for quickly skipping some combinations below
 
 		// try a combination of two reference units, each with powers of -3,...,3
 		int[] exponents = { 1, 2, -1, -2, 3, -3 }; // try to sort according to typical occurrences
@@ -1003,6 +1046,52 @@ public final class Units {
 						// both ref units are the same -> skip (except for empty unit)
 						if (refUnit1.equals(refUnit2) && !refUnit1.equals(EMPTY_UNIT)) continue;
 
+						// TODO put in separate method
+						// If the base units don't match, we can skip further calculations.
+						// First we check only the keys from the base units.
+						boolean doContinue = false;
+						Set<Unit> checkedUnits = new HashSet<>();
+						for (Entry<Unit, Integer> entry : baseUnits.entrySet()) {
+							if (entry.getValue() != exponent1 * refUnit1.baseUnits().getOrDefault(entry.getKey(), 0)
+									+ exponent2 * refUnit2.baseUnits().getOrDefault(entry.getKey(), 0)) {
+								// base units don't match
+								doContinue = true;
+								break;
+							}
+							checkedUnits.add(entry.getKey());
+						}
+						if (doContinue) continue;
+						
+						// Then we check the keys from ref unit 1, but without already checked units.
+						for (Entry<Unit, Integer> entry : refUnit1.baseUnits().entrySet()) {
+							if (checkedUnits.contains(entry.getKey())) continue;
+
+							if (exponent1 * entry.getValue()
+									+ exponent2 * refUnit2.baseUnits().getOrDefault(entry.getKey(), 0) != baseUnits
+											.getOrDefault(entry.getKey(), 0)) {
+								// base units don't match
+								doContinue = true;
+								break;
+							}
+							checkedUnits.add(entry.getKey());
+						}
+						if (doContinue) continue;
+
+						// Finally we check the keys from ref unit 2, but without already checked units.
+						for (Entry<Unit, Integer> entry : refUnit2.baseUnits().entrySet()) {
+							if (checkedUnits.contains(entry.getKey())) continue;
+
+							if (exponent2 * entry.getValue()
+									+ exponent1 * refUnit1.baseUnits().getOrDefault(entry.getKey(), 0) != baseUnits
+											.getOrDefault(entry.getKey(), 0)) {
+								// base units don't match
+								doContinue = true;
+								break;
+							}
+							checkedUnits.add(entry.getKey());
+						}
+						if (doContinue) continue;
+
 						// if we have mixed all lowercase and partially uppercase symbols we put the partial uppercase unit first
 						String refUnit1Symbol = refUnit1.symbols().get(0);
 						String refUnit2Symbol = refUnit2.symbols().get(0);
@@ -1010,18 +1099,28 @@ public final class Units {
 						String symbol = "";
 						if (COMPARATOR_FOR_UNIT_ORDERING.compare(refUnit1Symbol, refUnit2Symbol) > 0) {
 							if (!refUnit2Symbol.isEmpty()) symbol += refUnit2Symbol + (exponent2 == 1 ? "" : "^" + exponent2);
-							symbol += Strings.NON_BREAKABLE_SPACE;
-							if (!refUnit1Symbol.isEmpty()) symbol += refUnit1Symbol + (exponent1 == 1 ? "" : "^" + exponent1);
+							if (!refUnit1Symbol.isEmpty()) {
+								symbol += Strings.NON_BREAKABLE_SPACE;
+								symbol += refUnit1Symbol + (exponent1 == 1 ? "" : "^" + exponent1);
+							}
 						} else {
 							if (!refUnit1Symbol.isEmpty()) symbol += refUnit1Symbol + (exponent1 == 1 ? "" : "^" + exponent1);
-							symbol += Strings.NON_BREAKABLE_SPACE;
-							if (!refUnit2Symbol.isEmpty()) symbol += refUnit2Symbol + (exponent2 == 1 ? "" : "^" + exponent2);
+							if (!refUnit2Symbol.isEmpty()) {
+								symbol += Strings.NON_BREAKABLE_SPACE;
+								symbol += refUnit2Symbol + (exponent2 == 1 ? "" : "^" + exponent2);
+							}
 						}
-						symbol = symbol.trim();
 
-						if (equivalent(1, units, symbol, allUnitReferences)) {
+						Unit potentialTargetUnit = Unit.of(symbol, allUnitReferences);
+						if (equivalent(1, originalUnit, potentialTargetUnit)) {
 							Long score = calculateSymbolScore(refUnit1Symbol, refUnit2Symbol, exponent1, exponent2);
 							compatibleSymbols.computeIfAbsent(score, s -> new TreeSet<>(comparator)).add(symbol);
+							
+							// if the symbol is just the empty string and it is equivalent we can stop
+							// immediately, as it cannot get simpler.
+							if (potentialTargetUnit.symbols().get(0).isBlank()) {
+								return compatibleSymbols;
+							}
 						}
 					}
 					alreadyProcessedUnits.add(refUnit1);
@@ -1120,34 +1219,10 @@ public final class Units {
 	public static final boolean proportional(Unit first, Unit second) {
 		if (!first.canUseFactor() || !second.canUseFactor()) return false;
 		for (var o : first.baseUnits().entrySet()) {
-			if (o.getValue() != second.baseUnits().getOrDefault(o.getKey(), 0)) {
+			if (!o.getValue().equals(second.baseUnits().getOrDefault(o.getKey(), 0))) {
 				return false;
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Adds the specified unit to the internal caching based on the first symbol and
-	 * the compatible units of the given unit if not already cached. This alleviates
-	 * the need to implement equals and hashCode.
-	 * 
-	 * @param symbol          the symbol. Should match the first symbol in the list
-	 *                        of symbols of the unit that may be created by the
-	 *                        unitSupplier, if necessary.
-	 * @param compatibleUnits the compatible units. Should match the compatible
-	 *                        units of the unit that may be created by the
-	 *                        unitSupplier, if necessary.
-	 * @param unitSupplier    the supplier to create the unit, if necessary
-	 * @return the unit as in the internal caching map
-	 */
-	public static final Unit computeSpecialUnitIfAbsent(String symbol, Set<Unit> compatibleUnits, Supplier<Unit> unitSupplier) {
-		// pretty sure something is not quite right if the size grows to more than 1k
-		// entries, so better warn the user from time to time
-		int size = specialUnits.size();
-		if (size >= 1_000 && size % 100 == 0) {
-			logger.info("Currently, %d special units have been cached. This seems quite high.");
-		}
-		return specialUnits.computeIfAbsent(new StringBasedUnit(symbol, compatibleUnits), s -> unitSupplier.get());
 	}
 }

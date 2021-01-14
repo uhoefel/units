@@ -19,7 +19,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Level units")
-@SuppressWarnings("javadoc")
 class LevelUnitTests {
 
 	@DisplayName("Testing level base units <-> level conversions")

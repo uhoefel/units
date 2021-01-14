@@ -5,12 +5,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Supplier;
+import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import eu.hoefel.unit.DynamicUnit;
 import eu.hoefel.unit.Unit;
+import eu.hoefel.unit.UnitInfo;
 import eu.hoefel.unit.UnitPrefix;
 import eu.hoefel.unit.Units;
 import eu.hoefel.unit.binary.BinaryPrefix;
@@ -48,6 +56,9 @@ public enum LevelUnit implements Unit {
 	 * 80000-1 § Annex C</a>.
 	 */
 	NEPER(1, "Np");
+
+	/** Pattern for a logarithmic quantity with respect to some reference value and unit. */
+	static final Pattern LOG_UNIT_WITH_REF = Pattern.compile("(log|ln)\\^{0,1}(\\d*)\\(re[\\h, ](\\d+\\.?\\d*)[\\h,\u202F](.*?)\\)\\^{0,1}(\\d*)");
 
 	private static final Logger logger = Logger.getLogger(LevelUnit.class.getName());
 
@@ -132,12 +143,11 @@ public enum LevelUnit implements Unit {
 	 */
 	public final Unit inReferenceTo(double refValue, Unit refUnit, LevelUnitReferenceType type) {
 		if (LevelUnitReferenceType.findMatchingType(refUnit).stream().filter(r -> r == type).count() == 0) {
-			logger.warning(("For the given reference unit (%s) no matching reference unit type "
+			logger.warning(() -> ("For the given reference unit (%s) no matching reference unit type "
 					+ "could be found that matched the given reference unit type (%s). "
 					+ "Continuing with the given reference unit type, but the resulting symbol "
 					+ "will not be uniquely resolvable (the returned unit will be correct, though). "
-					+ "Please consider reporting the reference unit and its type "
-					+ "to %s")
+					+ "Please consider reporting the reference unit and its type " + "to %s")
 							.formatted(Units.toString(refUnit), type, PROJECT_HOME_URL));
 		}
 		
@@ -173,28 +183,67 @@ public enum LevelUnit implements Unit {
 			refValueString = refValueString.substring(0, refValueString.length() - 1);
 		}
 
-		symbol += String.format(Locale.ENGLISH, "(re %s %s)", refValueString, refUnit.symbols().get(0));
-		List<String> symbols = List.of(symbol);
+		symbol += String.format(Locale.ENGLISH, "(re %s\u202F%s)", refValueString, refUnit.symbols().get(0));
 
-		Set<Unit> compatibleUnits = Set.of(Units.flattenUnits(LevelUnit.values(), refUnit.compatibleUnits().stream().toArray(Unit[]::new)));
+		// we can not directly use Set.of as this throws an error if an element occurs
+		// multiple times
+		Set<Unit> set = new HashSet<>();
+		Collections.addAll(set, Units.flattenUnits(LevelUnit.values(), refUnit.compatibleUnits().stream().toArray(Unit[]::new)));
+		Set<Unit> compatibleUnits = Set.copyOf(set);
+		
+		Predicate<String> prefixAllowed = s -> false;
+		boolean isBasic = false;
+		ToDoubleFunction<String> nanFactor = s -> Double.NaN;
+		boolean canUseFactor = false;
+		var baseUnits = refUnit.baseUnits();
+		
+		return new DynamicUnit(List.of(symbol), Units.EMPTY_PREFIXES, prefixAllowed, isBasic, nanFactor, toBase, fromBase,
+				canUseFactor, baseUnits, compatibleUnits);
+	}
 
-		Supplier<Unit> u = () -> new Unit() {
-			// Note that we do not override equals and hashcode here, as this unit is only
-			// accessible via the concurrent map, so there should always be at most one
-			// instance of a unit with the properties as specified here, so we are hopefully
-			// fine if it uses the memory address for comparison
-			@Override public List<String> symbols() { return symbols; }
-			@Override public Set<UnitPrefix> prefixes() { return Set.of(); }
-			@Override public boolean prefixAllowed(String symbol) { return false; }
-			@Override public boolean isBasic() { return false; }
-			@Override public double factor(String symbol) { return Double.NaN; }
-			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
-			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-			@Override public boolean canUseFactor() { return false; }
-			@Override public Map<Unit, Integer> baseUnits() { return refUnit.baseUnits(); }
-			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
-		};
+	@Override
+	public Optional<NavigableMap<StringRange, UnitInfo>> parse(String s, Unit[]... extraUnits) {
+		var map = parseLogarithmicUnits(s.trim(), extraUnits);
+		map.putAll(Units.collectInfo(s, new Unit[] { this }));
+		return Optional.of(map);
+	}
 
-		return Units.computeSpecialUnitIfAbsent(symbol, compatibleUnits, u);
+	/**
+	 * Finds the logarithmic units in the given string. Note that this is separate
+	 * from the standard units as the representation of logarithmic units with
+	 * respect to some reference value and unit contains spaces that otherwise one
+	 * would split at to obtain individual units.
+	 * 
+	 * @param units      the string potentially containing the logarithmic units
+	 *                   with respect to some reference, e.g. "log(re 1.03 mV)"
+	 * @param extraUnits the additional units to use for parsing the units given in
+	 *                   the string
+	 * @return the unit infos of the found logarithmic units, or empty if no
+	 *         logarithmic unit is found
+	 * @throws IllegalArgumentException if the logarithmic unit is malformed
+	 */
+	private static NavigableMap<StringRange, UnitInfo> parseLogarithmicUnits(String units, Unit[]... extraUnits) {
+		Matcher m = LOG_UNIT_WITH_REF.matcher(units);
+		NavigableMap<StringRange, UnitInfo> infos = new TreeMap<>();
+
+		while (m.find()) {
+			if (m.groupCount() != 5) {
+				throw new IllegalArgumentException("Logarithmic unit with wrong number of captured groups found. "
+						+ "Expected 5 groups, but found " + m.groupCount());
+			}
+
+			int exponent = m.group(2).isEmpty() ? 0 : Integer.parseInt(m.group(2));
+			exponent += m.group(5).isEmpty() ? 0 : Integer.parseInt(m.group(5));
+
+			Unit u = switch (m.group(1)) {
+			case "log" -> BEL.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
+			case "ln" -> NEPER.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
+			default -> throw new IllegalArgumentException("Cannot identify corresponding LevelUnit. "
+					+ "Known are log->BEL and ln->NEPER, but you asked for " + m.group(1));
+			};
+			infos.put(new StringRange(m.start(), m.end()), new UnitInfo(Units.IDENTITY_PREFIX, u, m.group(), exponent));
+		}
+
+		return infos;
 	}
 }

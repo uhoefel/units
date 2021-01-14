@@ -107,8 +107,8 @@ public enum UnitContextMatch {
 	 * @return true if the two units are exactly identical (save order)
 	 */
 	private static final boolean exactMatch(String origin, String target, Unit[]... extraUnits) {
-		Set<UnitInfo> originUnits = Set.of(Units.collectInfo(origin, extraUnits));
-		Set<UnitInfo> targetUnits = Set.of(Units.collectInfo(target, extraUnits));
+		Set<UnitInfo> originUnits = Set.of(Units.collectInfo(origin, extraUnits).values().toArray(UnitInfo[]::new));
+		Set<UnitInfo> targetUnits = Set.of(Units.collectInfo(target, extraUnits).values().toArray(UnitInfo[]::new));
 		return originUnits.equals(targetUnits);
 	}
 }

@@ -125,17 +125,17 @@ class UnitTests {
 		e = assertThrows(IllegalArgumentException.class,
 				() -> Units.convert(0.0, SiBaseUnit.METER, Unit.of("not_a_real_unit")),
 				"Could convert to a nonexisting unit.");
-		assertEquals("Cannot convert from m (units: m^1) to not_a_real_unit (unknown unit) (units: not_a_real_unit^1)", e.getMessage());
+		assertEquals("Cannot convert from m (units: m) to not_a_real_unit (unknown unit) (units: not_a_real_unit)", e.getMessage());
 		
 		
 		e = assertThrows(IllegalArgumentException.class, () -> Units.convert(0.0, SiBaseUnit.METER, SiBaseUnit.AMPERE),
 				"Could convert to a noncompatible unit.");
-		assertEquals("Cannot convert from m (units: m^1) to A (units: A^1)", e.getMessage());
+		assertEquals("Cannot convert from m (units: m) to A (units: A)", e.getMessage());
 		
 		e = assertThrows(IllegalArgumentException.class,
 				() -> Units.factor(SiBaseUnit.METER, Unit.of("not_a_real_unit")),
 				"Could convert to a nonexisting unit.");
-		assertEquals("Cannot convert from m (units: m^1) to not_a_real_unit (unknown unit) (units: not_a_real_unit^1)", e.getMessage());
+		assertEquals("Cannot convert from m (units: m) to not_a_real_unit (unknown unit) (units: not_a_real_unit)", e.getMessage());
 		
 		e = assertThrows(IllegalArgumentException.class,
 				() -> Units.factor(SiBaseUnit.KELVIN, SiDerivedUnit.DEGREE_CELSIUS),
@@ -145,7 +145,7 @@ class UnitTests {
 
 		e = assertThrows(IllegalArgumentException.class, () -> Units.factor(SiBaseUnit.KELVIN, SiBaseUnit.AMPERE),
 				"Could determine a factor to a noncompatible unit.");
-		assertEquals("Cannot convert from K (units: K^1) to A (units: A^1)", e.getMessage());
+		assertEquals("Cannot convert from K (units: K) to A (units: A)", e.getMessage());
 	}
 
 	@DisplayName("Testing conversion (Unit -> String)")

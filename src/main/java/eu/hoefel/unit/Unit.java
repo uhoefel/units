@@ -4,15 +4,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.DoubleUnaryOperator;
-import java.util.regex.Matcher;
+import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 
-import eu.hoefel.unit.Units.StringBasedUnit;
 import eu.hoefel.unit.imperial.ImperialUnit;
-import eu.hoefel.unit.level.LevelUnit;
 import eu.hoefel.unit.si.SiBaseUnit;
 import eu.hoefel.unit.si.SiDerivedUnit;
+import eu.hoefel.utils.Regexes;
 import eu.hoefel.utils.Strings;
 
 /**
@@ -131,11 +134,51 @@ public interface Unit {
 		return Set.of();
 	}
 
+	public static record StringRange(int from, int to) implements Comparable<StringRange> {
+		
+		public StringRange {
+			if (from > to) throw new IllegalArgumentException("'from' must be smaller than or equal to 'to'!");
+		}
+
+		@Override
+		public int compareTo(StringRange sr) {
+			if (from < sr.from) return -1;
+			if (from == sr.from) {
+				if (length() < sr.length()) {
+					return -1;
+				} else if (length() == sr.length()) {
+					return 0;
+				}
+				return 1;
+			}
+			return 1;
+		}
+		
+		public int length() {
+			return to - from + 1; // from inclusive
+		}
+
+		public boolean comprises(StringRange sr) {
+			return (from <= sr.from() && to > sr.to()) || (from < sr.from() && to >= sr.to());
+		}
+
+		public boolean intersects(StringRange sr) {
+			return !(to < sr.from || from > sr.to);
+		}
+	}
+	
+	// TODO optional is empty if standard to speed up splitting
+	// maybe use smth like requiresSpecialParsing
+	// otherwise use Units.collectInfo(s, new Unit[] { this })
+	default Optional<NavigableMap<StringRange, UnitInfo>> parse(String s, Unit[]... extraUnits) {
+		return Optional.empty();
+	}
+
 	/**
 	 * Gets a unit representation of the given units. Can handle composite (i.e., it
 	 * can handle units like e.g. "kg m^2 s^-1") as well as non-composite (i.e., it
 	 * can handle units like "kg", "m^2", "s") units. Will always be a singleton.
-	 * Can be used in the
+	 * Can be used in the TODO
 	 * 
 	 * @param units      the units, e.g. "kg^2 s^-1"
 	 * @param extraUnits the additional units to use for parsing the units
@@ -144,84 +187,64 @@ public interface Unit {
 	public static Unit of(String units, Unit[]... extraUnits) {
 		String trimmedUnits = Strings.trim(units);
 
-		Unit[] flatExtraUnits = Units.flattenUnits(extraUnits);
+		Unit[] unitsForParsing = Units.flattenUnits(extraUnits);
 		Unit[][] allExtraUnits = extraUnits;
-		if (flatExtraUnits.length == 0) {
-			flatExtraUnits = Units.DEFAULT_UNITS.stream().toArray(Unit[]::new);
+		if (unitsForParsing.length == 0) {
+			unitsForParsing = Units.DEFAULT_UNITS.stream().toArray(Unit[]::new);
 			allExtraUnits = new Unit[0][];
 		}
 
-		// TODO only there to have an effective final version of the variable...
-		Unit[][] finalAllExtraUnits = allExtraUnits;
-
-		String[] unitParts = Units.LOG_UNIT_WITH_REF.split(trimmedUnits);
-		UnitInfo[] logUnits = parseLogarithmicUnits(trimmedUnits, allExtraUnits);
-
-		// add the logarithmic unit infos at the right position
-		List<UnitInfo> infos = new ArrayList<>();
-		int logUnitCounter = 0;
-		for (int i = 0; i < unitParts.length; i++) {
-			String trimmedUnitPart = Strings.trim(unitParts[i]);
-			if (!trimmedUnitPart.isEmpty()) {
-				Collections.addAll(infos, Units.collectInfo(trimmedUnitPart, allExtraUnits));
+		NavigableMap<StringRange, UnitInfo> allUnitInfos = new TreeMap<>();
+		
+		String[] unitsRaw = Regexes.ALL_SPACE.split(units.trim());
+		String[][] unitPower = new String[unitsRaw.length][];
+		for (int i = 0; i < unitsRaw.length; i++) {
+			unitPower[i] = Regexes.EXPONENT.split(unitsRaw[i].trim());
+		}
+		
+		for (Unit unitForParsing : unitsForParsing) {
+			var parseResult = unitForParsing.parse(units, allExtraUnits);
+			if (parseResult.isPresent()) {
+				allUnitInfos.putAll(parseResult.get());
+			} else {
+				// this is the standard case
+				var map = Units.provideUnitInfoWithRegexesAlreadyApplied(units, unitsRaw, unitPower, Units::checkUnits, new Unit[] { unitForParsing });
+				allUnitInfos.putAll(map);
 			}
-			if (logUnitCounter < logUnits.length) infos.add(logUnits[logUnitCounter++]);
+			
 		}
+		
+		// just to make sure we don't change this one by accident
+		var finalAllUnitInfos = Collections.unmodifiableNavigableMap(allUnitInfos);
 
-		// remaining logarithmic units
-		while (logUnitCounter < logUnits.length) {
-			infos.add(logUnits[logUnitCounter++]);
-		}
+		// get a modifiable map
+		NavigableMap<StringRange,UnitInfo> relevantUnitInfos = new TreeMap<>(allUnitInfos);
 
-		UnitInfo[] infoArray = infos.stream().toArray(UnitInfo[]::new);
-
-		StringBasedUnit stringBasedUnitInfo = new StringBasedUnit(trimmedUnits, Set.of(flatExtraUnits));
-		if (infoArray.length == 1) {
-			return Units.specialUnits.computeIfAbsent(stringBasedUnitInfo, s -> noncompositeUnitOf(trimmedUnits, infoArray, finalAllExtraUnits));
-		}
-		return Units.specialUnits.computeIfAbsent(stringBasedUnitInfo, s -> compositeUnitOf(trimmedUnits, infoArray, finalAllExtraUnits));
-	}
-
-	/**
-	 * Finds the logarithmic units in the given string. Note that this is separate
-	 * from the standard units as the representation of logarithmic units with
-	 * respect to some reference value and unit contains spaces that otherwise one
-	 * would split at to obtain individual units.
-	 * 
-	 * @param units      the string potentially containing the logarithmic units
-	 *                   with respect to some reference, e.g. "log(re 1.03 mV)"
-	 * @param extraUnits the additional units to use for parsing the units given in
-	 *                   the string
-	 * @return the unit infos of the found logarithmic units, or empty if no
-	 *         logarithmic unit is found
-	 * @throws IllegalArgumentException if the logarithmic unit is malformed
-	 */
-	private static UnitInfo[] parseLogarithmicUnits(String units, Unit[]... extraUnits) {
-		Matcher m = Units.LOG_UNIT_WITH_REF.matcher(units);
-		List<UnitInfo> infos = new ArrayList<>();
-
-		while (m.find()) {
-			if (m.groupCount() != 5) {
-				throw new IllegalArgumentException("Logarithmic unit with wrong number of captured groups found. "
-						+ "Expected 5 groups, but found " + m.groupCount());
+		// remove all substrings whose ranges get covered by a larger substring
+		finalAllUnitInfos.forEach((range, info) -> {
+			if (finalAllUnitInfos.keySet().stream().anyMatch(r -> r.comprises(range))) {
+				relevantUnitInfos.remove(range);
 			}
-
-			int exponent = m.group(2).isEmpty() ? 0 : Integer.parseInt(m.group(2));
-			exponent += m.group(5).isEmpty() ? 0 : Integer.parseInt(m.group(5));
-
-			// I don't like that BEL and NEPER are explicitly used here, but I cannot think
-			// of a better way to handle the whitespace-including symbols of the LevelUnits
-			// with respect to some other unit at the moment
-			Unit u = switch (m.group(1)) {
-			case "log" -> LevelUnit.BEL.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
-			case "ln" -> LevelUnit.NEPER.inReferenceTo(Double.parseDouble(m.group(3)), Unit.of(m.group(4), extraUnits));
-			default -> throw new IllegalArgumentException("Cannot identify corresponding LevelUnit. "
-					+ "Known are log->BEL and ln->NEPER, but you asked for " + m.group(1));
-			};
-			infos.add(new UnitInfo(Units.IDENTITY_PREFIX, u, m.group(), exponent));
+		});
+		
+		// make sure we have no overlapping ranges
+		for (StringRange sr1 : relevantUnitInfos.keySet()) {
+			for (StringRange sr2 : relevantUnitInfos.keySet()) {
+				if (sr1.equals(sr2)) continue;
+				if (sr1.intersects(sr2)) {
+					throw new IllegalStateException("TODO "); // TODO
+				}
+			}
 		}
-
-		return infos.stream().toArray(UnitInfo[]::new);
+		
+		var infos = new ArrayList<>(relevantUnitInfos.values());
+		
+		if (infos.size() == 0) {
+			return Units.unknownUnit(trimmedUnits);
+		} else if (infos.size() == 1) {
+			return noncompositeUnitOf(trimmedUnits, infos, allExtraUnits);
+		}
+		return compositeUnitOf(trimmedUnits, infos, allExtraUnits);
 	}
 
 	/**
@@ -235,54 +258,66 @@ public interface Unit {
 	 *                   the string
 	 * @return the unit representing e.g. "kg" or "s^-1"
 	 */
-	private static Unit noncompositeUnitOf(String units, UnitInfo[] infos, Unit[]... extraUnits) {
+	private static Unit noncompositeUnitOf(String units, List<UnitInfo> infos, Unit[]... extraUnits) {
 		BaseConversionInfo conversionInfo = Units.cleanup(infos);
 
 		// identity prefixes will generally have an empty string as a symbol
-		boolean isIdentityPrefix = infos[0].prefix().symbols().get(0).isEmpty();
+		boolean isIdentityPrefix = infos.get(0).prefix().symbols().get(0).isEmpty();
 
-		if (isIdentityPrefix && infos[0].exponent() == 1) {
+		if (isIdentityPrefix && infos.get(0).exponent() == 1) {
 			// this should be a normal non-composite unit with an exponent of 1, i.e. a unit
 			// matching its original definition
-			return infos[0].unit();
+			return infos.get(0).unit();
 		}
 
-		Unit unit = infos[0].unit();
-		boolean prefixAllowed = isIdentityPrefix && unit.prefixAllowed(units);
+		Unit unit = infos.get(0).unit();
 
-		// if the exponent is not 1, it is not the base unit, i.e., "m^2" is not a base unit
-		boolean isBasic = unit.isBasic() && infos[0].exponent() == 1;
-
-		Set<UnitPrefix> prefixes = Set.copyOf(unit.prefixes());
 		List<String> symbols = List.of(units);
+		Set<UnitPrefix> prefixes = Set.copyOf(unit.prefixes());
+		Predicate<String> prefixAllowed = s -> isIdentityPrefix && unit.prefixAllowed(units);
+		
+		// if the exponent is not 1, it is not the base unit, i.e., "m^2" is not a base unit
+		boolean isBasic = unit.isBasic() && infos.get(0).exponent() == 1;
+		
+		ToDoubleFunction<String> factor = s -> conversionInfo.factor();
 		DoubleUnaryOperator toBase;
 		DoubleUnaryOperator fromBase;
 		if (conversionInfo.canUseFactor()) {
 			toBase = v -> v * conversionInfo.factor();
 			fromBase = v -> v / conversionInfo.factor();
 		} else {
-			double prefix = infos[0].prefix().factor();
+			double prefix = infos.get(0).prefix().factor();
 			toBase = v -> unit.convertToBaseUnits(prefix * v);
 			fromBase = v -> unit.convertFromBaseUnits(prefix * v);
 		}
-		Set<Unit> compatibleUnits = Set.of(Units.flattenUnits(extraUnits));
+		boolean canUseFactor = conversionInfo.canUseFactor();
+		Map<Unit, Integer> baseUnits = conversionInfo.baseUnitInfos();
 
-		return new Unit() {
-			// Note that we do not override equals and hashcode here, as this unit is only
-			// accessible via the concurrent map, so there should always be at most one
-			// instance of a unit with the properties as specified here, so we are hopefully
-			// fine if it uses the memory address for comparison
-			@Override public List<String> symbols() { return symbols; }
-			@Override public Set<UnitPrefix> prefixes() { return prefixes; }
-			@Override public boolean prefixAllowed(String symbol) { return prefixAllowed; }
-			@Override public boolean isBasic() { return isBasic; }
-			@Override public double factor(String symbol) { return conversionInfo.factor(); }
-			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
-			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
-			@Override public Map<Unit, Integer> baseUnits() { return Map.copyOf(conversionInfo.baseUnitInfos()); }
-			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
-		};
+		Set<Unit> compatibleUnits;
+		if (extraUnits.length == 0) {
+			compatibleUnits = Units.DEFAULT_UNITS;
+		} else {
+			compatibleUnits = Set.of(Units.flattenUnits(extraUnits));
+		}
+		
+		return new DynamicUnit(symbols, prefixes, prefixAllowed, isBasic, factor, toBase, fromBase, canUseFactor, baseUnits, compatibleUnits);
+		
+//		return new Unit() {
+//			// Note that we do not override equals and hashcode here, as this unit is only
+//			// accessible via the concurrent map, so there should always be at most one
+//			// instance of a unit with the properties as specified here, so we are hopefully
+//			// fine if it uses the memory address for comparison
+//			@Override public List<String> symbols() { return symbols; }
+//			@Override public Set<UnitPrefix> prefixes() { return prefixes; }
+//			@Override public boolean prefixAllowed(String symbol) { return prefixAllowed; }
+//			@Override public boolean isBasic() { return isBasic; }
+//			@Override public double factor(String symbol) { return conversionInfo.factor(); }
+//			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
+//			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
+//			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
+//			@Override public Map<Unit, Integer> baseUnits() { return Map.copyOf(conversionInfo.baseUnitInfos()); }
+//			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
+//		};
 	}
 
 	/**
@@ -296,30 +331,45 @@ public interface Unit {
 	 *                   the string
 	 * @return the unit representing e.g. "kg s" or "m^-2 s^-1"
 	 */
-	private static Unit compositeUnitOf(String units, UnitInfo[] infos, Unit[]... extraUnits) {
+	private static Unit compositeUnitOf(String units, List<UnitInfo> infos, Unit[]... extraUnits) {
 		BaseConversionInfo conversionInfo = Units.cleanup(infos);
-		List<String> symbols = List.of(units);
 		var baseUnitInfos = conversionInfo.baseUnitInfos();
-		UnitInfo[] baseUnitInfo = Units.collectInfo(Units.toSymbol(baseUnitInfos), baseUnitInfos.keySet().toArray(Unit[]::new));
+		var baseUnitInfo = Units.collectInfo(Units.toSymbol(baseUnitInfos), baseUnitInfos.keySet().toArray(Unit[]::new)).values();
+
+		List<String> symbols = List.of(units);
+		Set<UnitPrefix> prefixes = Set.of();
+		Predicate<String> prefixAllowed = s -> false;
+		boolean isBasic = false;
+		ToDoubleFunction<String> factor = s -> conversionInfo.factor();
 		DoubleUnaryOperator toBase = Units.internalConversionOperation(infos, baseUnitInfo);
 		DoubleUnaryOperator fromBase = Units.internalConversionOperation(baseUnitInfo, infos);
-		Set<Unit> compatibleUnits = Set.of(Units.flattenUnits(extraUnits));
+		boolean canUseFactor = conversionInfo.canUseFactor();
+		Map<Unit, Integer> baseUnits = conversionInfo.baseUnitInfos();
 
-		return new Unit() {
-			// Note that we do not override equals and hashcode here, as this unit is only
-			// accessible via the concurrent map, so there should always be at most one
-			// instance of a unit with the properties as specified here, so we are hopefully
-			// fine if it uses the memory address for comparison
-			@Override public List<String> symbols() { return symbols; }
-			@Override public Set<UnitPrefix> prefixes() { return Set.of(); }
-			@Override public boolean prefixAllowed(String symbol) { return false; }
-			@Override public boolean isBasic() { return false; }
-			@Override public double factor(String symbol) { return conversionInfo.factor(); }
-			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
-			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
-			@Override public Map<Unit, Integer> baseUnits() { return conversionInfo.baseUnitInfos(); }
-			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
-		};
+		Set<Unit> compatibleUnits;
+		if (extraUnits.length == 0) {
+			compatibleUnits = Units.DEFAULT_UNITS;
+		} else {
+			compatibleUnits = Set.of(Units.flattenUnits(extraUnits));
+		}
+
+		return new DynamicUnit(symbols, prefixes, prefixAllowed, isBasic, factor, toBase, fromBase, canUseFactor, baseUnits, compatibleUnits);
+
+//		return new Unit() {
+//			// Note that we do not override equals and hashcode here, as this unit is only
+//			// accessible via the concurrent map, so there should always be at most one
+//			// instance of a unit with the properties as specified here, so we are hopefully
+//			// fine if it uses the memory address for comparison
+//			@Override public List<String> symbols() { return symbols; }
+//			@Override public Set<UnitPrefix> prefixes() { return Set.of(); }
+//			@Override public boolean prefixAllowed(String symbol) { return false; }
+//			@Override public boolean isBasic() { return false; }
+//			@Override public double factor(String symbol) { return conversionInfo.factor(); }
+//			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
+//			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
+//			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
+//			@Override public Map<Unit, Integer> baseUnits() { return conversionInfo.baseUnitInfos(); }
+//			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
+//		};
 	}
 }
