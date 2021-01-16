@@ -6,21 +6,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Predicate;
-import java.util.function.ToDoubleFunction;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import eu.hoefel.unit.DynamicUnit;
 import eu.hoefel.unit.Unit;
 import eu.hoefel.unit.UnitInfo;
 import eu.hoefel.unit.UnitPrefix;
 import eu.hoefel.unit.Units;
+import eu.hoefel.unit.Units.StringRange;
 import eu.hoefel.unit.binary.BinaryPrefix;
 import eu.hoefel.unit.si.SiPrefix;
 
@@ -184,6 +183,7 @@ public enum LevelUnit implements Unit {
 		}
 
 		symbol += String.format(Locale.ENGLISH, "(re %s\u202F%s)", refValueString, refUnit.symbols().get(0));
+		var dynamicSymbol = List.of(symbol);
 
 		// we can not directly use Set.of as this throws an error if an element occurs
 		// multiple times
@@ -191,21 +191,52 @@ public enum LevelUnit implements Unit {
 		Collections.addAll(set, Units.flattenUnits(LevelUnit.values(), refUnit.compatibleUnits().stream().toArray(Unit[]::new)));
 		Set<Unit> compatibleUnits = Set.copyOf(set);
 		
-		Predicate<String> prefixAllowed = s -> false;
-		boolean isBasic = false;
-		ToDoubleFunction<String> nanFactor = s -> Double.NaN;
-		boolean canUseFactor = false;
-		var baseUnits = refUnit.baseUnits();
-		
-		return new DynamicUnit(List.of(symbol), Units.EMPTY_PREFIXES, prefixAllowed, isBasic, nanFactor, toBase, fromBase,
-				canUseFactor, baseUnits, compatibleUnits);
+		return new Unit() {
+			@Override public List<String> symbols() { return dynamicSymbol; }
+			@Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
+			@Override public boolean prefixAllowed(String symbol) { return false; }
+			@Override public boolean isBasic() { return false; }
+			@Override public double factor(String symbol) { return Double.NaN; }
+			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
+			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
+			@Override public boolean canUseFactor() { return false; }
+			@Override public Map<Unit, Integer> baseUnits() { return refUnit.baseUnits(); }
+			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
+			
+			@Override
+			public String toString() {
+				return "LevelUnitWithReference[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
+						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits, isBasic(), prefixes(), symbols());
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) return true;
+				if (obj instanceof Unit other) {
+					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+							&& Objects.equals(compatibleUnits, other.compatibleUnits()) && isBasic() == other.isBasic()
+							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
+				}
+				return false;
+			}
+		};
 	}
 
 	@Override
-	public Optional<NavigableMap<StringRange, UnitInfo>> parse(String s, Unit[]... extraUnits) {
-		var map = parseLogarithmicUnits(s.trim(), extraUnits);
-		map.putAll(Units.collectInfo(s, new Unit[] { this }));
-		return Optional.of(map);
+	public BiFunction<String, Unit[][], NavigableMap<StringRange, UnitInfo>> parser() {
+		return (s, u) -> {
+			Objects.requireNonNull(s);
+			Objects.requireNonNull(u);
+
+			var map = parseLogarithmicUnits(s.trim(), u);
+			map.putAll(Units.collectInfo(s, new Unit[] { this }));
+			return map;
+		};
 	}
 
 	/**

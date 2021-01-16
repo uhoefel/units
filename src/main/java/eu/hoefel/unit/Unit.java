@@ -5,16 +5,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Predicate;
-import java.util.function.ToDoubleFunction;
 
-import eu.hoefel.unit.imperial.ImperialUnit;
-import eu.hoefel.unit.si.SiBaseUnit;
-import eu.hoefel.unit.si.SiDerivedUnit;
+import eu.hoefel.unit.Units.StringRange;
 import eu.hoefel.utils.Regexes;
 import eu.hoefel.utils.Strings;
 
@@ -58,11 +55,12 @@ public interface Unit {
 
 	/**
 	 * Checks whether the unit conversion to base units requires a shift (like e.g.
-	 * {@link SiDerivedUnit#DEGREE_CELSIUS degree Celsius}) or whether the
-	 * conversion can be done purely multiplicative.
+	 * {@link eu.hoefel.unit.si.SiDerivedUnit#DEGREE_CELSIUS degree Celsius}) or
+	 * whether the conversion can be done purely multiplicative.
 	 * 
 	 * @return true if conversion to base units is multiplicative
 	 */
+	// TODO isConversionMultiplicative? naming!
 	public boolean canUseFactor();
 
 	/**
@@ -72,7 +70,8 @@ public interface Unit {
 	 * @param symbol the symbol of which one wants the corresponding conversion
 	 *               factor. Only relevant if different symbols correspond to
 	 *               different factors, like e.g. for "kg" and "g" (which both are
-	 *               recognized as representations of {@link SiBaseUnit#KILOGRAM}).
+	 *               recognized as representations of
+	 *               {@link eu.hoefel.unit.si.SiBaseUnit#KILOGRAM}).
 	 * @return the conversion factor to base SI units
 	 */
 	public double factor(String symbol);
@@ -88,8 +87,8 @@ public interface Unit {
 	/**
 	 * Converts {@code value} for this unit into the proper value in base units.
 	 * This method also works for conversions that require a shift, not a
-	 * multiplication, like e.g. for {@link SiDerivedUnit#DEGREE_CELSIUS degree
-	 * Celsius}.
+	 * multiplication, like e.g. for
+	 * {@link eu.hoefel.unit.si.SiDerivedUnit#DEGREE_CELSIUS degree Celsius}.
 	 * 
 	 * @param value the value in this unit
 	 * @return the value in base SI units
@@ -99,7 +98,7 @@ public interface Unit {
 	/**
 	 * Converts {@code value} from base units into this unit. This method also works
 	 * for conversions that require a shift, not a multiplication, like e.g. for
-	 * {@link SiDerivedUnit#DEGREE_CELSIUS degree Celsius}.
+	 * {@link eu.hoefel.unit.si.SiDerivedUnit#DEGREE_CELSIUS degree Celsius}.
 	 * 
 	 * @param value the value in base SI units
 	 * @return the value in this unit
@@ -116,69 +115,62 @@ public interface Unit {
 
 	/**
 	 * Checks whether the unit is a base unit in its unit system. This will be false
-	 * for most units, as they usually refer to the {@link SiBaseUnit SI units} 
-	 * (this also holds true for, e.g., the {@link ImperialUnit Imperial units}).
+	 * for most units, as they usually refer to the
+	 * {@link eu.hoefel.unit.si.SiBaseUnit SI units} (this also holds true for,
+	 * e.g., the {@link eu.hoefel.unit.imperial.ImperialUnit Imperial units}).
 	 * 
 	 * @return true if unit is a basic unit
 	 */
 	public boolean isBasic();
 
 	/**
-	 * This is a convenience method for unusual units. It can provide units that
-	 * should be checked against as well. Cannot be null, should be empty if there
-	 * are no compatible units.
+	 * Gets units that should be checked against as well when parsing this unit.
+	 * Cannot be null, should be empty if there are no compatible units. Only
+	 * necessary for unusual units.
 	 * 
 	 * @return compatible units to be checked as well
 	 */
+	// TODO can I remove this?
 	default Set<Unit> compatibleUnits() {
 		return Set.of();
 	}
 
-	public static record StringRange(int from, int to) implements Comparable<StringRange> {
-		
-		public StringRange {
-			if (from > to) throw new IllegalArgumentException("'from' must be smaller than or equal to 'to'!");
-		}
-
-		@Override
-		public int compareTo(StringRange sr) {
-			if (from < sr.from) return -1;
-			if (from == sr.from) {
-				if (length() < sr.length()) {
-					return -1;
-				} else if (length() == sr.length()) {
-					return 0;
-				}
-				return 1;
-			}
-			return 1;
-		}
-		
-		public int length() {
-			return to - from + 1; // from inclusive
-		}
-
-		public boolean comprises(StringRange sr) {
-			return (from <= sr.from() && to > sr.to()) || (from < sr.from() && to >= sr.to());
-		}
-
-		public boolean intersects(StringRange sr) {
-			return !(to < sr.from || from > sr.to);
-		}
-	}
-	
-	// TODO optional is empty if standard to speed up splitting
-	// maybe use smth like requiresSpecialParsing
-	// otherwise use Units.collectInfo(s, new Unit[] { this })
-	default Optional<NavigableMap<StringRange, UnitInfo>> parse(String s, Unit[]... extraUnits) {
-		return Optional.empty();
+	/**
+	 * Gets the parser to recognize this unit in a given string.
+	 * <p>
+	 * This method only needs to be overridden if a unit requires non-standard
+	 * parsing behavior, e.g. the units in {@link eu.hoefel.unit.level.LevelUnit}
+	 * provide a special parser to handle Units created via
+	 * {@link eu.hoefel.unit.level.LevelUnit#inReferenceTo(double, Unit)}. Using the
+	 * {@link Units#DEFAULT_PARSER} if possible offers the advantage of a much
+	 * faster parsing via {@link #of(String, Unit[][])}.
+	 * 
+	 * @return the parser, i.e. a function that takes a string, e.g. "kg^2 m" as
+	 *         well as extra Units that may be required for parsing (this array can
+	 *         be of zero length if no additional units are required) and return a
+	 *         navigable map that holds the string ranges in which matches have been
+	 *         found, and the decomposed information about the units at the
+	 *         corresponding string range. The inputs to the parser should be
+	 *         non-null.
+	 */
+	default BiFunction<String, Unit[][], NavigableMap<StringRange, UnitInfo>> parser() {
+		return Units.DEFAULT_PARSER;
 	}
 
 	/**
-	 * Gets a unit representation of the given units. Can handle composite (i.e., it
-	 * can handle units like e.g. "kg m^2 s^-1") as well as non-composite (i.e., it
-	 * can handle units like "kg", "m^2", "s") units. Will always be a singleton.
-	 * Can be used in the TODO
+	 * Gets a unit representation of the given units. Can handle composite units
+	 * (i.e., it can handle units like e.g. "kg m^2 s^-1") as well as non-composite
+	 * units (i.e., it can handle units like "kg", "m^2", "s").
+	 * <p>
+	 * Note that the returned unit omits the lambdas used in
+	 * {@link #prefixAllowed(String)}, {@link #factor(String)},
+	 * {@link #convertToBaseUnits(double)} and {@link #convertFromBaseUnits(double)}
+	 * from the {@link #equals(Object)} and {@link #hashCode()} for practical
+	 * reasons:
+	 * <p>
+	 * {@code // false if the above mentioned lambdas would be taken into account}<br>
+	 * {@code Unit.of("kg^2").equals(Unit.of("kg^2"))}<br>
+	 * <p>
 	 * 
 	 * @param units      the units, e.g. "kg^2 s^-1"
 	 * @param extraUnits the additional units to use for parsing the units
@@ -203,15 +195,13 @@ public interface Unit {
 		}
 		
 		for (Unit unitForParsing : unitsForParsing) {
-			var parseResult = unitForParsing.parse(units, allExtraUnits);
-			if (parseResult.isPresent()) {
-				allUnitInfos.putAll(parseResult.get());
-			} else {
+			if (unitForParsing.parser() == Units.DEFAULT_PARSER) {
 				// this is the standard case
 				var map = Units.provideUnitInfoWithRegexesAlreadyApplied(units, unitsRaw, unitPower, Units::checkUnits, new Unit[] { unitForParsing });
 				allUnitInfos.putAll(map);
+			} else {
+				allUnitInfos.putAll(unitForParsing.parser().apply(units, allExtraUnits));
 			}
-			
 		}
 		
 		// just to make sure we don't change this one by accident
@@ -228,18 +218,23 @@ public interface Unit {
 		});
 		
 		// make sure we have no overlapping ranges
-		for (StringRange sr1 : relevantUnitInfos.keySet()) {
-			for (StringRange sr2 : relevantUnitInfos.keySet()) {
-				if (sr1.equals(sr2)) continue;
-				if (sr1.intersects(sr2)) {
-					throw new IllegalStateException("TODO "); // TODO
+		for (var sr1 : relevantUnitInfos.entrySet()) {
+			for (var sr2 : relevantUnitInfos.entrySet()) {
+				if (sr1.getKey().equals(sr2.getKey())) continue;
+				if (sr1.getKey().intersects(sr2.getKey())) {
+					throw new IllegalStateException(
+							"The resolved units correspond to overlapping ranges in the given String. "
+									+ "Unable to determine which unit to use. The units in question were "
+									+ "%s (index %d to %d) and %s (index %d to %d) in %s".formatted(
+											sr1.getValue(), sr1.getKey().from(), sr1.getKey().to(),
+											sr2.getValue(), sr1.getKey().from(), sr2.getKey().to(), units));
 				}
 			}
 		}
 		
 		var infos = new ArrayList<>(relevantUnitInfos.values());
 		
-		if (infos.size() == 0) {
+		if (infos.isEmpty()) {
 			return Units.unknownUnit(trimmedUnits);
 		} else if (infos.size() == 1) {
 			return noncompositeUnitOf(trimmedUnits, infos, allExtraUnits);
@@ -274,12 +269,10 @@ public interface Unit {
 
 		List<String> symbols = List.of(units);
 		Set<UnitPrefix> prefixes = Set.copyOf(unit.prefixes());
-		Predicate<String> prefixAllowed = s -> isIdentityPrefix && unit.prefixAllowed(units);
 		
 		// if the exponent is not 1, it is not the base unit, i.e., "m^2" is not a base unit
 		boolean isBasic = unit.isBasic() && infos.get(0).exponent() == 1;
 		
-		ToDoubleFunction<String> factor = s -> conversionInfo.factor();
 		DoubleUnaryOperator toBase;
 		DoubleUnaryOperator fromBase;
 		if (conversionInfo.canUseFactor()) {
@@ -290,8 +283,6 @@ public interface Unit {
 			toBase = v -> unit.convertToBaseUnits(prefix * v);
 			fromBase = v -> unit.convertFromBaseUnits(prefix * v);
 		}
-		boolean canUseFactor = conversionInfo.canUseFactor();
-		Map<Unit, Integer> baseUnits = conversionInfo.baseUnitInfos();
 
 		Set<Unit> compatibleUnits;
 		if (extraUnits.length == 0) {
@@ -299,25 +290,41 @@ public interface Unit {
 		} else {
 			compatibleUnits = Set.of(Units.flattenUnits(extraUnits));
 		}
-		
-		return new DynamicUnit(symbols, prefixes, prefixAllowed, isBasic, factor, toBase, fromBase, canUseFactor, baseUnits, compatibleUnits);
-		
-//		return new Unit() {
-//			// Note that we do not override equals and hashcode here, as this unit is only
-//			// accessible via the concurrent map, so there should always be at most one
-//			// instance of a unit with the properties as specified here, so we are hopefully
-//			// fine if it uses the memory address for comparison
-//			@Override public List<String> symbols() { return symbols; }
-//			@Override public Set<UnitPrefix> prefixes() { return prefixes; }
-//			@Override public boolean prefixAllowed(String symbol) { return prefixAllowed; }
-//			@Override public boolean isBasic() { return isBasic; }
-//			@Override public double factor(String symbol) { return conversionInfo.factor(); }
-//			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
-//			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-//			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
-//			@Override public Map<Unit, Integer> baseUnits() { return Map.copyOf(conversionInfo.baseUnitInfos()); }
-//			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
-//		};
+
+		return new Unit() {
+			@Override public List<String> symbols() { return symbols; }
+			@Override public Set<UnitPrefix> prefixes() { return prefixes; }
+			@Override public boolean prefixAllowed(String symbol) { return isIdentityPrefix && unit.prefixAllowed(units); }
+			@Override public boolean isBasic() { return isBasic; }
+			@Override public double factor(String symbol) { return conversionInfo.factor(); }
+			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
+			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
+			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
+			@Override public Map<Unit, Integer> baseUnits() { return Map.copyOf(conversionInfo.baseUnitInfos()); }
+			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
+			
+			@Override
+			public String toString() {
+				return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
+						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits, isBasic(), prefixes(), symbols());
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) return true;
+				if (obj instanceof Unit other) {
+					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+							&& Objects.equals(compatibleUnits, other.compatibleUnits()) && isBasic() == other.isBasic()
+							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
+				}
+				return false;
+			}
+		};
 	}
 
 	/**
@@ -337,14 +344,8 @@ public interface Unit {
 		var baseUnitInfo = Units.collectInfo(Units.toSymbol(baseUnitInfos), baseUnitInfos.keySet().toArray(Unit[]::new)).values();
 
 		List<String> symbols = List.of(units);
-		Set<UnitPrefix> prefixes = Set.of();
-		Predicate<String> prefixAllowed = s -> false;
-		boolean isBasic = false;
-		ToDoubleFunction<String> factor = s -> conversionInfo.factor();
 		DoubleUnaryOperator toBase = Units.internalConversionOperation(infos, baseUnitInfo);
 		DoubleUnaryOperator fromBase = Units.internalConversionOperation(baseUnitInfo, infos);
-		boolean canUseFactor = conversionInfo.canUseFactor();
-		Map<Unit, Integer> baseUnits = conversionInfo.baseUnitInfos();
 
 		Set<Unit> compatibleUnits;
 		if (extraUnits.length == 0) {
@@ -353,23 +354,39 @@ public interface Unit {
 			compatibleUnits = Set.of(Units.flattenUnits(extraUnits));
 		}
 
-		return new DynamicUnit(symbols, prefixes, prefixAllowed, isBasic, factor, toBase, fromBase, canUseFactor, baseUnits, compatibleUnits);
+		return new Unit() {
+			@Override public List<String> symbols() { return symbols; }
+			@Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
+			@Override public boolean prefixAllowed(String symbol) { return false; }
+			@Override public boolean isBasic() { return false; }
+			@Override public double factor(String symbol) { return conversionInfo.factor(); }
+			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
+			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
+			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
+			@Override public Map<Unit, Integer> baseUnits() { return conversionInfo.baseUnitInfos(); }
+			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
+			
+			@Override
+			public String toString() {
+				return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
+						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+			}
 
-//		return new Unit() {
-//			// Note that we do not override equals and hashcode here, as this unit is only
-//			// accessible via the concurrent map, so there should always be at most one
-//			// instance of a unit with the properties as specified here, so we are hopefully
-//			// fine if it uses the memory address for comparison
-//			@Override public List<String> symbols() { return symbols; }
-//			@Override public Set<UnitPrefix> prefixes() { return Set.of(); }
-//			@Override public boolean prefixAllowed(String symbol) { return false; }
-//			@Override public boolean isBasic() { return false; }
-//			@Override public double factor(String symbol) { return conversionInfo.factor(); }
-//			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
-//			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-//			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
-//			@Override public Map<Unit, Integer> baseUnits() { return conversionInfo.baseUnitInfos(); }
-//			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
-//		};
+			@Override
+			public int hashCode() {
+				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits, isBasic(), prefixes(), symbols());
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) return true;
+				if (obj instanceof Unit other) {
+					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+							&& Objects.equals(compatibleUnits, other.compatibleUnits()) && isBasic() == other.isBasic()
+							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
+				}
+				return false;
+			}
+		};
 	}
 }

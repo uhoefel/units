@@ -19,11 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Predicate;
-import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
-import eu.hoefel.unit.Unit.StringRange;
 import eu.hoefel.unit.binary.BinaryUnit;
 import eu.hoefel.unit.context.PhysicsContext;
 import eu.hoefel.unit.level.LevelUnit;
@@ -47,19 +44,6 @@ public final class Units {
 		throw new IllegalStateException("This is a pure utility class!");
 	}
 
-	/**
-	 * This record holds the information of the units and the accompanying extra
-	 * units to be used for parsing. This is useful for maps, in which the units
-	 * should serve as the key, but the units available for parsing might change the
-	 * meaning of the unit, i.e., it is used for {@link Units#specialUnits}.
-	 * 
-	 * @param units      the units, e.g. "kg^2 m s^-1"
-	 * @param extraUnits the additional units to use for parsing the units
-	 * 
-	 * @author Udo Hoefel
-	 */
-	private static record StringBasedUnit(String units, Set<Unit> extraUnits) {}
-	
 	/** Empty units, mainly for use within (some) implementations of {@link Unit}. */
 	public static final Set<Unit> EMPTY_UNITS = Set.of();
 
@@ -70,8 +54,40 @@ public final class Units {
 	public static final Set<UnitPrefix> EMPTY_PREFIXES = Set.of();
 
 	/** The "Unit" of "no unit". */
-	public static final Unit EMPTY_UNIT = new DynamicUnit(List.of(""), EMPTY_PREFIXES, s -> false, true, s -> 1,
-			DoubleUnaryOperator.identity(), DoubleUnaryOperator.identity(), true, Map.of(), EMPTY_UNITS);
+	public static final Unit EMPTY_UNIT = new Unit() {
+		@Override public List<String> symbols() { return List.of(""); }
+		@Override public Set<UnitPrefix> prefixes() { return EMPTY_PREFIXES; }
+		@Override public boolean prefixAllowed(String symbol) { return false; }
+		@Override public boolean isBasic() { return true; }
+		@Override public Map<Unit, Integer> baseUnits() { return Map.of(); }
+		@Override public double factor(String symbol) { return 1; }
+		@Override public double convertToBaseUnits(double value) { return value; }
+		@Override public double convertFromBaseUnits(double value) { return value; }
+		@Override public boolean canUseFactor() { return true; }
+		@Override public Set<Unit> compatibleUnits() { return EMPTY_UNITS; }
+		
+		@Override
+		public String toString() {
+			return "EmptyUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
+					+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits() + "]";
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits(), isBasic(), prefixes(), symbols());
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj instanceof Unit other) {
+				return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+						&& Objects.equals(compatibleUnits(), other.compatibleUnits()) && isBasic() == other.isBasic()
+						&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
+			}
+			return false;
+		}
+	};
 
 	/** Represents a "prefix" with no symbol and a factor of 1. */
 	public static final UnitPrefix IDENTITY_PREFIX = new UnitPrefix() {
@@ -89,6 +105,53 @@ public final class Units {
 			return false;
 		}
 	};
+
+	/**
+	 * This record holds the information of the units and the accompanying extra
+	 * units to be used for parsing. This is useful for maps, in which the units
+	 * should serve as the key, but the units available for parsing might change the
+	 * meaning of the unit, i.e., it is used for {@link Units#specialUnits}.
+	 * 
+	 * @param units      the units, e.g. "kg^2 m s^-1"
+	 * @param extraUnits the additional units to use for parsing the units
+	 * 
+	 * @author Udo Hoefel
+	 */
+	private static record StringBasedUnit(String units, Set<Unit> extraUnits) {}
+
+	// TODO
+	public static record StringRange(int from, int to) implements Comparable<StringRange> {
+		
+		public StringRange {
+			if (from > to) throw new IllegalArgumentException("'from' must be smaller than or equal to 'to'!");
+		}
+
+		@Override
+		public int compareTo(StringRange sr) {
+			if (from < sr.from) return -1;
+			if (from == sr.from) {
+				if (length() < sr.length()) {
+					return -1;
+				} else if (length() == sr.length()) {
+					return 0;
+				}
+				return 1;
+			}
+			return 1;
+		}
+		
+		public int length() {
+			return to - from + 1; // from inclusive
+		}
+
+		public boolean comprises(StringRange sr) {
+			return (from <= sr.from() && to > sr.to()) || (from < sr.from() && to >= sr.to());
+		}
+
+		public boolean intersects(StringRange sr) {
+			return !(to < sr.from || from > sr.to);
+		}
+	}
 
 	/**
 	 * Map for holding simplifications of specified string based units, ensuring that
@@ -111,6 +174,13 @@ public final class Units {
 	 * within (some) implementations of {@link Unit}.
 	 */
 	public static final Set<UnitPrefix> DEFAULT_PREFIXES;
+
+	/**
+	 * The default parser. Using this specific parser allows certain optimizations
+	 * that can speed up parsing operations notably. See {@link #collectInfo(String,
+	 * Unit[]...)} for more information.
+	 */
+	public static final BiFunction<String, Unit[][], NavigableMap<StringRange, UnitInfo>> DEFAULT_PARSER = Units::collectInfo;
 
 	static {
 		Set<Unit> defUnits = new LinkedHashSet<>();
@@ -189,32 +259,92 @@ public final class Units {
 
 	/**
 	 * Represents an unknown unit.
+	 * <p>
+	 * There is one catch with the unit as returned here: The unit cannot reference
+	 * itself in the {@link Unit#baseUnits()} as this would produce a stackoverflow
+	 * error. Hence, an "inner" unit is created that is identical to the returned
+	 * unknown ("outer") unit, except that it has no base units (but serves as the
+	 * base unit to the returned unit).
 	 * 
 	 * @param unit the symbol of the unknown unit
 	 * @return the unknown unit
 	 */
 	public static final Unit unknownUnit(String unit) {
-		List<String> symbols = List.of(unit);
-		Predicate<String> prefixAllowed = s -> false;
-		boolean isBasic = true;
-		ToDoubleFunction<String> factor = s -> 1;
-		DoubleUnaryOperator toBase = DoubleUnaryOperator.identity();
-		DoubleUnaryOperator fromBase = DoubleUnaryOperator.identity();
-		boolean canUseFactor = true;
-		Map<Unit, Integer> baseUnits = Map.of();
-		Unit innerUnit = new DynamicUnit(symbols, EMPTY_PREFIXES, prefixAllowed, isBasic, factor, toBase, fromBase, canUseFactor, baseUnits, EMPTY_UNITS);
+		// This is a bit ugly:
+		// As we cannot sensibly reference the unit itself in baseUnits() as this
+		// produces a stackoverflow error, we have an "inner" unit that basically
+		// behaves as the "outer" unknown unit, except that it has no base units, i.e.,
+		// it is not reasonable to ask the base units for the base units in this
+		// particular instance.
+		Unit innerUnit = new Unit() {
+			@Override public List<String> symbols() { return List.of(unit); }
+			@Override public Set<UnitPrefix> prefixes() { return EMPTY_PREFIXES; }
+			@Override public boolean prefixAllowed(String symbol) { return false; }
+			@Override public boolean isBasic() { return true; }
+			@Override public Map<Unit, Integer> baseUnits() { return Map.of(); } // Note here the empty base units
+			@Override public double factor(String symbol) { return 1; }
+			@Override public double convertToBaseUnits(double value) { return value; }
+			@Override public double convertFromBaseUnits(double value) { return value; }
+			@Override public boolean canUseFactor() { return true; }
+			@Override public Set<Unit> compatibleUnits() { return EMPTY_UNITS; }
+
+			@Override
+			public String toString() {
+				return "UnknownUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
+						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits() + "]";
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits(), isBasic(), prefixes(), symbols());
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) return true;
+				if (obj instanceof Unit other) {
+					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+							&& Objects.equals(compatibleUnits(), other.compatibleUnits()) && isBasic() == other.isBasic()
+							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
+				}
+				return false;
+			}
+		};
 		
-		baseUnits = Map.of(innerUnit, 1);
-		return new DynamicUnit(symbols, 
-				EMPTY_PREFIXES, 
-				prefixAllowed, 
-				isBasic, 
-				factor, 
-				toBase, 
-				fromBase, 
-				canUseFactor, 
-				baseUnits, 
-				EMPTY_UNITS);
+		return new Unit() {
+			@Override public List<String> symbols() { return List.of(unit); }
+			@Override public Set<UnitPrefix> prefixes() { return EMPTY_PREFIXES; }
+			@Override public boolean prefixAllowed(String symbol) { return false; }
+			@Override public boolean isBasic() { return true; }
+			@Override public Map<Unit, Integer> baseUnits() { return Map.of(innerUnit, 1); } // Note here the reference to the "inner" unit
+			@Override public double factor(String symbol) { return 1; }
+			@Override public double convertToBaseUnits(double value) { return value; }
+			@Override public double convertFromBaseUnits(double value) { return value; }
+			@Override public boolean canUseFactor() { return true; }
+			@Override public Set<Unit> compatibleUnits() { return EMPTY_UNITS; }
+
+			@Override
+			public String toString() {
+				return "UnknownUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
+						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits() + "]";
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits(), isBasic(), prefixes(), symbols());
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) return true;
+				if (obj instanceof Unit other) {
+					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+							&& Objects.equals(compatibleUnits(), other.compatibleUnits()) && isBasic() == other.isBasic()
+							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
+				}
+				return false;
+			}
+		};
 	}
 
 	/**
@@ -310,6 +440,10 @@ public final class Units {
 	 * @return info of the decoded units and their position in the given string
 	 */
 	public static final NavigableMap<StringRange, UnitInfo> collectInfo(String units, Unit[]... extraUnits) {
+		Objects.requireNonNull(units);
+		Objects.requireNonNull(extraUnits);
+		// TODO add more Objects.requireNonNull maybe?
+
 		return provideUnitInfo(units, Units::checkUnits, extraUnits);
 	}
 
@@ -332,7 +466,8 @@ public final class Units {
 	}
 
 	// TODO
-	private static final NavigableMap<StringRange, UnitInfo> provideUnitInfo(String units, BiFunction<String[], Unit[][], UnitInfo> check, Unit[]... extraUnits) {
+	private static final NavigableMap<StringRange, UnitInfo> provideUnitInfo(String units,
+			BiFunction<String[], Unit[][], UnitInfo> check, Unit[]... extraUnits) {
 		String[] unitsRaw = Regexes.ALL_SPACE.split(units.trim());
 		String[][] unitPower = new String[unitsRaw.length][];
 		for (int i = 0; i < unitsRaw.length; i++) {
@@ -342,7 +477,9 @@ public final class Units {
 	}
 
 	// TODO
-	static final NavigableMap<StringRange, UnitInfo> provideUnitInfoWithRegexesAlreadyApplied(String units, String[] unitsRaw, String[][] unitPower, BiFunction<String[], Unit[][], UnitInfo> check, Unit[]... extraUnits) {
+	static final NavigableMap<StringRange, UnitInfo> provideUnitInfoWithRegexesAlreadyApplied(String units,
+			String[] unitsRaw, String[][] unitPower, BiFunction<String[], Unit[][], UnitInfo> check,
+			Unit[]... extraUnits) {
 		NavigableMap<StringRange, UnitInfo> unitInfo = new TreeMap<>();
 		int position = 0;
 		for (int i = 0; i < unitsRaw.length; i++) {
@@ -1001,7 +1138,7 @@ public final class Units {
 				// so we might have bunch of equivalent symbols, like e.g. "N^2 Wb" and "J^2 T".
 				// The special comparator used in the set we get takes care of this and
 				// guarantees reproducible output
-				NavigableSet<String> equivalentSymbols = compatibleSymbols.get(compatibleSymbols.firstKey());
+				NavigableSet<String> equivalentSymbols = compatibleSymbols.firstEntry().getValue();
 				return equivalentSymbols.first();
 			}
 
