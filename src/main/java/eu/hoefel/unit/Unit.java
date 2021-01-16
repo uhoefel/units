@@ -174,8 +174,7 @@ public interface Unit {
 	 * Note that the returned unit omits the lambdas used in
 	 * {@link #prefixAllowed(String)}, {@link #factor(String)},
 	 * {@link #convertToBaseUnits(double)} and {@link #convertFromBaseUnits(double)}
-	 * from the {@link #equals(Object)} and {@link #hashCode()} for practical
-	 * reasons:
+	 * from the equals and hashCode methods for practical reasons:
 	 * <p>
 	 * {@code // false if the above mentioned lambdas would be taken into account}<br>
 	 * {@code Unit.of("kg^2").equals(Unit.of("kg^2"))}<br>
