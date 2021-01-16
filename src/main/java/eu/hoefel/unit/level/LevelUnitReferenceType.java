@@ -1,6 +1,7 @@
 package eu.hoefel.unit.level;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -111,6 +112,8 @@ public enum LevelUnitReferenceType {
 	 * @return the reference unit type if found, else an empty otpional
 	 */
 	public static final Optional<LevelUnitReferenceType> findMatchingType(Unit refUnit) {
+		Objects.requireNonNull(refUnit);
+
 		List<BiPredicate<Unit, Unit>> checks = List.of(Units::convertible, Units::proportional);
 		for (BiPredicate<Unit, Unit> check : checks) {
 			for (LevelUnitReferenceType type : LevelUnitReferenceType.values()) {

@@ -72,11 +72,14 @@ public interface Constant extends Texable {
 	 * @param uncertainty the uncertainty (one standard deviation) of the constant
 	 * @param units       the units, e.g. "N m^-2". The units needs to be separated
 	 *                    by spaces, potential exponents need to be appended to the
-	 *                    unit following a "^".
-	 * @param extraUnits  the additional units to use for the conversion
+	 *                    unit following a "^". May not be null.
+	 * @param extraUnits  the additional units to use for the conversion, not null
 	 * @return a new generic constant
 	 */
 	public static Constant of(double value, double uncertainty, String units, Unit[]... extraUnits) {
+		Objects.requireNonNull(units);
+		Objects.requireNonNull(extraUnits);
+
 		return of(value, uncertainty, Unit.of(units, Units.flattenUnits(extraUnits)));
 	}
 
@@ -86,10 +89,12 @@ public interface Constant extends Texable {
 	 * 
 	 * @param value       the value
 	 * @param uncertainty the uncertainty (one standard deviation)
-	 * @param unit        the unit
+	 * @param unit        the unit, not null
 	 * @return a new generic constant
 	 */
 	public static Constant of(double value, double uncertainty, Unit unit) {
+		Objects.requireNonNull(unit);
+
 		double absUncertainty = Math.abs(uncertainty);
 		return new Constant() {
 			@Override public double value() { return value; }
@@ -115,15 +120,20 @@ public interface Constant extends Texable {
 	 * {@code Constant.of("3m^2");} or <br>
 	 * {@code Constant.of("3.435789 s");} or <br>
 	 * 
-	 * @param str        the string containing a number and potentially a unit
-	 * @param extraUnits the additional units to use for the conversion
+	 * @param str        the string containing a number and potentially a unit, not
+	 *                   null
+	 * @param extraUnits the additional units to use for the conversion, not null
 	 * @return a new generic constant
 	 */
 	public static Constant of(String str, Unit[]... extraUnits) {
+		Objects.requireNonNull(str);
+		Objects.requireNonNull(extraUnits);
+
 		String trimmed = str.trim();
 		if (trimmed.isEmpty()) {
 			throw new IllegalArgumentException("Found no valid number for the constant!");
 		}
+
 		for (int i = 0; i < trimmed.length(); i++) {
 			char c = trimmed.charAt(i);
 			if (!Character.isDigit(c) && c != '.') {
@@ -154,13 +164,17 @@ public interface Constant extends Texable {
 	 * {@code Constant.isConstant("3±4s^2")} will yield {@code false}<br>
 	 * 
 	 * @param str        the string to check. Needs to have a number and optionally
-	 *                   a unit.
-	 * @param extraUnits the additional units to use for the conversion
+	 *                   a unit. May not be null.
+	 * @param extraUnits the additional units to use for the conversion, not null
 	 * @return true if the given string can be converted to a {@link Constant}
 	 */
 	public static boolean isConstant(String str, Unit[]... extraUnits) {
+		Objects.requireNonNull(str);
+		Objects.requireNonNull(extraUnits);
+
 		String trimmed = str.trim();
 		if (trimmed.isEmpty()) return false;
+
 		for (int i = 0; i < trimmed.length(); i++) {
 			char c = trimmed.charAt(i);
 			if (!Character.isDigit(c) && c != '.') {
@@ -179,16 +193,19 @@ public interface Constant extends Texable {
 	/**
 	 * Helper method for toString() for implementing classes.
 	 * 
-	 * @param constant the constant
+	 * @param constant the constant, not null
 	 * @return the constant in a human readable format
 	 */
 	public static String toString(Constant constant) {
+		Objects.requireNonNull(constant);
+
 		String ret = (Double.isNaN(constant.value()) ? ""
 				: constant.value() + Strings.SMALL_NON_BREAKABLE_SPACE + "±" + Strings.SMALL_NON_BREAKABLE_SPACE
 						+ constant.uncertainty()).toLowerCase(Locale.ENGLISH);
 		if (!constant.unit().symbols().get(0).isEmpty()) {
 			ret = "(" + ret + ")" + Strings.SMALL_NON_BREAKABLE_SPACE + constant.unit().symbols().get(0);
 		}
+
 		return ret;
 	}
 
@@ -198,10 +215,12 @@ public interface Constant extends Texable {
 	 * vales match their counterparts from the other constant) to the specified
 	 * other constant
 	 * 
-	 * @param constant the constant to check
+	 * @param constant the constant to check, not null
 	 * @return true if constants are equal
 	 */
 	default boolean equivalent(Constant constant) {
+		Objects.requireNonNull(constant);
+
 		return Units.convertible(unit(), constant.unit()) 
 				&& Units.equivalent(value(), unit(), constant.unit())
 				&& Units.equivalent(uncertainty(), unit(), constant.unit());
@@ -212,12 +231,15 @@ public interface Constant extends Texable {
 	 * 
 	 * @param units      the target units, e.g. "N m^-2". The units needs to be
 	 *                   separated by spaces, potential exponents need to be
-	 *                   appended to the unit following a "^".
-	 * @param extraUnits the additional units to use for the conversion
+	 *                   appended to the unit following a "^". May not be null.
+	 * @param extraUnits the additional units to use for the conversion, not null
 	 * @return the constant in {@code value} {@code units}, in the sense of, e.g.,
 	 *         "km in units of Angstrom"
 	 */
 	default Constant inUnitsOf(String units, Unit[]... extraUnits) {
+		Objects.requireNonNull(units);
+		Objects.requireNonNull(extraUnits);
+
 		return inUnitsOf(Unit.of(units, Units.flattenUnits(extraUnits)));
 	}
 
@@ -227,11 +249,13 @@ public interface Constant extends Texable {
 	 * @implSpec The default implementation converts the current constant to the
 	 *           target units, assuming both the units of the current constant and
 	 *           the target units are compatible units.
-	 * @param unit the target unit
+	 * @param unit the target unit, not null
 	 * @return the constant in {@code units}, in the sense of, e.g., "km in units of
 	 *         Angstrom"
 	 */
 	default Constant inUnitsOf(Unit unit) {
+		Objects.requireNonNull(unit);
+
 		return of(Units.convert(value(), unit(), unit),  Units.convert(uncertainty(), unit(), unit), unit);
 	}
 
@@ -241,11 +265,14 @@ public interface Constant extends Texable {
 	 * 
 	 * @param target the target units, e.g. "N m^-2". The units needs to be
 	 *               separated by spaces, potential exponents need to be appended to
-	 *               the unit following a "^".
-	 * @param extraUnits the additional units to use for the conversion
+	 *               the unit following a "^". May not be null.
+	 * @param extraUnits the additional units to use for the conversion, not null
 	 * @return true if the conversion can be done
 	 */
 	default boolean convertible(String target, Unit[]... extraUnits) {
+		Objects.requireNonNull(target);
+		Objects.requireNonNull(extraUnits);
+
 		return convertible(Unit.of(target, extraUnits));
 	}
 
@@ -254,10 +281,12 @@ public interface Constant extends Texable {
 	 * 
 	 * @implSpec The default implementation performs the check assuming both the
 	 *           current constant and the target units are compatible SI units.
-	 * @param target the target unit
+	 * @param target the target unit, not null
 	 * @return true if the conversion can be done
 	 */
 	default boolean convertible(Unit target) {
+		Objects.requireNonNull(target);
+
 		return Units.convertible(unit(), target);
 	}
 
@@ -288,10 +317,12 @@ public interface Constant extends Texable {
 	 * @implSpec The default implementation assumes both the uncertainty of the
 	 *           current constant, and the specified {@code constant} are each one
 	 *           standard deviation of a Gaussian distribution.
-	 * @param constant the constant to multiply with
+	 * @param constant the constant to multiply with, not null
 	 * @return the constant resulting from the product
 	 */
 	default Constant mul(Constant constant) {
+		Objects.requireNonNull(constant);
+
 		return mul(constant.value(), constant.uncertainty(), constant.unit());
 	}
 
@@ -304,10 +335,12 @@ public interface Constant extends Texable {
 	 *           one standard deviation of a Gaussian distribution.
 	 * @param value       the numeric value to multiply with
 	 * @param uncertainty the standard deviation
-	 * @param unit        the unit to multiply with
+	 * @param unit        the unit to multiply with, not null
 	 * @return the constant resulting from the product
 	 */
 	default Constant mul(double value, double uncertainty, Unit unit) {
+		Objects.requireNonNull(unit);
+
 		double resultingValue = value() * value;
 		double resultingUncertainty = resultingValue * Math.sqrt(Math.pow(uncertainty() / value(), 2) + Math.pow(uncertainty / value, 2));
 		Unit resultingUnit = Unit.of(unit().symbols().get(0) + Strings.NON_BREAKABLE_SPACE + unit.symbols().get(0));
@@ -321,10 +354,11 @@ public interface Constant extends Texable {
 	 * @implSpec The default implementation assumes both the uncertainty of the
 	 *           current constant, and the specified {@code constant} are each one
 	 *           standard deviation of a Gaussian distribution.
-	 * @param constant the constant to divide with
+	 * @param constant the constant to divide with, not null
 	 * @return the constant resulting from the division
 	 */
 	default Constant div(Constant constant) {
+		Objects.requireNonNull(constant);
 		return div(constant.value(), constant.uncertainty(), constant.unit());
 	}
 
@@ -337,10 +371,12 @@ public interface Constant extends Texable {
 	 *           one standard deviation of a Gaussian distribution.
 	 * @param value       the numeric value to divide by
 	 * @param uncertainty the standard deviation
-	 * @param unit        the unit to divide by
+	 * @param unit        the unit to divide by, not null
 	 * @return the constant resulting from the division
 	 */
 	default Constant div(double value, double uncertainty, Unit unit) {
+		Objects.requireNonNull(unit);
+
 		double resultingValue = value() / value;
 		double resultingUncertainty = Math.abs(resultingValue) * Math.sqrt(Math.pow(uncertainty() / value(), 2) + Math.pow(uncertainty / value, 2));
 		String[] unitParts = Regexes.ALL_SPACE.split(unit.symbols().get(0).trim());
