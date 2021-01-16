@@ -61,17 +61,17 @@ public enum BinaryUnit implements Unit {
 		this.factor = factor;
 		this.symbols = List.of(symbols);
 		
-		Set<UnitPrefix> prefixes = new HashSet<>();
-		Collections.addAll(prefixes, SiPrefix.values());
-		Collections.addAll(prefixes, BinaryPrefix.values());
-		this.prefixes = Set.copyOf(prefixes);
+		Set<UnitPrefix> prefixSet = new HashSet<>();
+		Collections.addAll(prefixSet, SiPrefix.values());
+		Collections.addAll(prefixSet, BinaryPrefix.values());
+		this.prefixes = Set.copyOf(prefixSet);
 	}
 
 	@Override public double factor(String symbol) { return factor; }
 	@Override public Map<Unit, Integer> baseUnits() { return BASE_UNITS; }
 	@Override public List<String> symbols() { return symbols; }
 	@Override public boolean prefixAllowed(String symbol) { return true; }
-	@Override public boolean canUseFactor() { return true; }
+	@Override public boolean isConversionLinear() { return true; }
 	@Override public double convertToBaseUnits(double value) { return factor * value; }
 	@Override public double convertFromBaseUnits(double value) { return value / factor; }
 	@Override public Set<UnitPrefix> prefixes() { return prefixes; }

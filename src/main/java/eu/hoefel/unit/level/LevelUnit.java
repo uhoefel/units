@@ -96,7 +96,7 @@ public enum LevelUnit implements Unit {
 
 	@Override public List<String> symbols() { return symbols; }
 	@Override public boolean prefixAllowed(String symbol) { return true; }
-	@Override public boolean canUseFactor() { return true; }
+	@Override public boolean isConversionLinear() { return true; }
 	@Override public double factor(String symbol) { return factor; }
 	@Override public Map<Unit, Integer> baseUnits() { return BASE_UNITS; }
 	@Override public double convertToBaseUnits(double value) { return factor * value; }
@@ -121,11 +121,14 @@ public enum LevelUnit implements Unit {
 	 *                                  found
 	 */
 	public final Unit inReferenceTo(double refValue, Unit refUnit) {
+		Objects.requireNonNull(refUnit);
+
 		LevelUnitReferenceType t = LevelUnitReferenceType.findMatchingType(refUnit)
 				.orElseThrow(() -> new IllegalArgumentException(("Unable to determine whether the given reference unit "
 						+ "(%s) belongs to any of the known reference unit types (%s). "
 						+ "Please specify the type explicitly via inReferenceTo(double,Unit,ReferenceUnitType).")
 								.formatted(Units.toString(refUnit), Set.of(LevelUnitReferenceType.values()))));
+
 		return inReferenceTo(refValue, refUnit, t);
 	}
 
@@ -141,6 +144,9 @@ public enum LevelUnit implements Unit {
 	 * @return the level unit with respect to the given reference
 	 */
 	public final Unit inReferenceTo(double refValue, Unit refUnit, LevelUnitReferenceType type) {
+		Objects.requireNonNull(refUnit);
+		Objects.requireNonNull(type);
+		
 		if (LevelUnitReferenceType.findMatchingType(refUnit).stream().filter(r -> r == type).count() == 0) {
 			logger.warning(() -> ("For the given reference unit (%s) no matching reference unit type "
 					+ "could be found that matched the given reference unit type (%s). "
@@ -199,26 +205,26 @@ public enum LevelUnit implements Unit {
 			@Override public double factor(String symbol) { return Double.NaN; }
 			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
 			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-			@Override public boolean canUseFactor() { return false; }
+			@Override public boolean isConversionLinear() { return false; }
 			@Override public Map<Unit, Integer> baseUnits() { return refUnit.baseUnits(); }
 			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
 			
 			@Override
 			public String toString() {
 				return "LevelUnitWithReference[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+						+ isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
 			}
 
 			@Override
 			public int hashCode() {
-				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits, isBasic(), prefixes(), symbols());
+				return Objects.hash(baseUnits(), isConversionLinear(), compatibleUnits, isBasic(), prefixes(), symbols());
 			}
 
 			@Override
 			public boolean equals(Object obj) {
 				if (this == obj) return true;
 				if (obj instanceof Unit other) {
-					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+					return Objects.equals(baseUnits(), other.baseUnits()) && isConversionLinear() == other.isConversionLinear()
 							&& Objects.equals(compatibleUnits, other.compatibleUnits()) && isBasic() == other.isBasic()
 							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
 				}

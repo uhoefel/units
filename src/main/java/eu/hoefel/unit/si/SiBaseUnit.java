@@ -128,7 +128,7 @@ public enum SiBaseUnit implements Unit {
 	@Override public Map<Unit, Integer> baseUnits() { return baseUnits; }
 	@Override public List<String> symbols() { return symbols; }
 	@Override public boolean prefixAllowed(String symbol) { return this != KILOGRAM || !"kg".equals(symbol); }
-	@Override public boolean canUseFactor() { return true; }
+	@Override public boolean isConversionLinear() { return true; }
 	@Override public double convertToBaseUnits(double value) { return value; }
 	@Override public double convertFromBaseUnits(double value) { return value; }
 	@Override public Set<UnitPrefix> prefixes() { return DEFAULT_PREFIXES; }

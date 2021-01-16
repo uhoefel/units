@@ -1,7 +1,5 @@
 package eu.hoefel.unit;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -54,18 +52,19 @@ public interface Unit {
 	public boolean prefixAllowed(String symbol);
 
 	/**
-	 * Checks whether the unit conversion to base units requires a shift (like e.g.
-	 * {@link eu.hoefel.unit.si.SiDerivedUnit#DEGREE_CELSIUS degree Celsius}) or
-	 * whether the conversion can be done purely multiplicative.
+	 * Checks whether the unit conversion to base units requires a nonlinear
+	 * operation like a shift (like e.g.
+	 * {@link eu.hoefel.unit.si.SiDerivedUnit#DEGREE_CELSIUS degree Celsius}) to get
+	 * to the corresponding base units or whether the conversion can be done purely
+	 * multiplicative, i.e. the operation is linear.
 	 * 
 	 * @return true if conversion to base units is multiplicative
 	 */
-	// TODO isConversionMultiplicative? naming!
-	public boolean canUseFactor();
+	public boolean isConversionLinear();
 
 	/**
 	 * Gets the factor for the specified symbol to convert to base units. Note that
-	 * not all conversions can be multiplicative (cf. {@link #canUseFactor()}).
+	 * not all conversions can be multiplicative (cf. {@link #isConversionLinear()}).
 	 * 
 	 * @param symbol the symbol of which one wants the corresponding conversion
 	 *               factor. Only relevant if different symbols correspond to
@@ -124,15 +123,25 @@ public interface Unit {
 	public boolean isBasic();
 
 	/**
-	 * Gets units that should be checked against as well when parsing this unit.
-	 * Cannot be null, should be empty if there are no compatible units. Only
-	 * necessary for unusual units.
+	 * Gets compatible units (nonexhaustive). This method serves mainly the purpose
+	 * that, if e.g. {@link Units#convert(double, String, String, Unit[]...)} is
+	 * used with the current unit provided within the {@code extraUnits} some
+	 * default units are still available. To give a practical example:
+	 * <p>
+	 * {@code // Does only work because the TemperatureUnit provides}<br>
+	 * {@code // SiBaseUnit.KELVIN in its compatible units}<br>
+	 * {@code Units.convert(3, "K", "°F", TemperatureUnit.values());}
+	 * <p>
+	 * The reason for not hardcoding the {@link Units#DEFAULT_UNITS} is that it
+	 * would foreclose the option for unit systems that are completely detached from
+	 * the SI system.<br>
+	 * However, since the vast majority of units will be within the SI system, the
+	 * default implementation uses the SI default units mentioned above.
 	 * 
 	 * @return compatible units to be checked as well
 	 */
-	// TODO can I remove this?
 	default Set<Unit> compatibleUnits() {
-		return Set.of();
+		return Units.DEFAULT_UNITS;
 	}
 
 	/**
@@ -177,6 +186,9 @@ public interface Unit {
 	 * @return a {@link Unit} representing the (potentially non-)composite unit
 	 */
 	public static Unit of(String units, Unit[]... extraUnits) {
+		Objects.requireNonNull(units);
+		Objects.requireNonNull(extraUnits);
+
 		String trimmedUnits = Strings.trim(units);
 
 		Unit[] unitsForParsing = Units.flattenUnits(extraUnits);
@@ -203,37 +215,9 @@ public interface Unit {
 				allUnitInfos.putAll(unitForParsing.parser().apply(units, allExtraUnits));
 			}
 		}
-		
-		// just to make sure we don't change this one by accident
-		var finalAllUnitInfos = Collections.unmodifiableNavigableMap(allUnitInfos);
 
-		// get a modifiable map
-		NavigableMap<StringRange,UnitInfo> relevantUnitInfos = new TreeMap<>(allUnitInfos);
+		List<UnitInfo> infos = Units.processStringRangeMatches(units, allUnitInfos);
 
-		// remove all substrings whose ranges get covered by a larger substring
-		finalAllUnitInfos.forEach((range, info) -> {
-			if (finalAllUnitInfos.keySet().stream().anyMatch(r -> r.comprises(range))) {
-				relevantUnitInfos.remove(range);
-			}
-		});
-		
-		// make sure we have no overlapping ranges
-		for (var sr1 : relevantUnitInfos.entrySet()) {
-			for (var sr2 : relevantUnitInfos.entrySet()) {
-				if (sr1.getKey().equals(sr2.getKey())) continue;
-				if (sr1.getKey().intersects(sr2.getKey())) {
-					throw new IllegalStateException(
-							"The resolved units correspond to overlapping ranges in the given String. "
-									+ "Unable to determine which unit to use. The units in question were "
-									+ "%s (index %d to %d) and %s (index %d to %d) in %s".formatted(
-											sr1.getValue(), sr1.getKey().from(), sr1.getKey().to(),
-											sr2.getValue(), sr1.getKey().from(), sr2.getKey().to(), units));
-				}
-			}
-		}
-		
-		var infos = new ArrayList<>(relevantUnitInfos.values());
-		
 		if (infos.isEmpty()) {
 			return Units.unknownUnit(trimmedUnits);
 		} else if (infos.size() == 1) {
@@ -299,26 +283,26 @@ public interface Unit {
 			@Override public double factor(String symbol) { return conversionInfo.factor(); }
 			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
 			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
+			@Override public boolean isConversionLinear() { return conversionInfo.canUseFactor(); }
 			@Override public Map<Unit, Integer> baseUnits() { return Map.copyOf(conversionInfo.baseUnitInfos()); }
 			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
 			
 			@Override
 			public String toString() {
 				return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+						+ isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
 			}
 
 			@Override
 			public int hashCode() {
-				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits, isBasic(), prefixes(), symbols());
+				return Objects.hash(baseUnits(), isConversionLinear(), compatibleUnits, isBasic(), prefixes(), symbols());
 			}
 
 			@Override
 			public boolean equals(Object obj) {
 				if (this == obj) return true;
 				if (obj instanceof Unit other) {
-					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+					return Objects.equals(baseUnits(), other.baseUnits()) && isConversionLinear() == other.isConversionLinear()
 							&& Objects.equals(compatibleUnits, other.compatibleUnits()) && isBasic() == other.isBasic()
 							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
 				}
@@ -362,26 +346,26 @@ public interface Unit {
 			@Override public double factor(String symbol) { return conversionInfo.factor(); }
 			@Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
 			@Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
-			@Override public boolean canUseFactor() { return conversionInfo.canUseFactor(); }
+			@Override public boolean isConversionLinear() { return conversionInfo.canUseFactor(); }
 			@Override public Map<Unit, Integer> baseUnits() { return conversionInfo.baseUnitInfos(); }
 			@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
 			
 			@Override
 			public String toString() {
 				return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-						+ canUseFactor() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+						+ isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
 			}
 
 			@Override
 			public int hashCode() {
-				return Objects.hash(baseUnits(), canUseFactor(), compatibleUnits, isBasic(), prefixes(), symbols());
+				return Objects.hash(baseUnits(), isConversionLinear(), compatibleUnits, isBasic(), prefixes(), symbols());
 			}
 
 			@Override
 			public boolean equals(Object obj) {
 				if (this == obj) return true;
 				if (obj instanceof Unit other) {
-					return Objects.equals(baseUnits(), other.baseUnits()) && canUseFactor() == other.canUseFactor()
+					return Objects.equals(baseUnits(), other.baseUnits()) && isConversionLinear() == other.isConversionLinear()
 							&& Objects.equals(compatibleUnits, other.compatibleUnits()) && isBasic() == other.isBasic()
 							&& Objects.equals(prefixes(), other.prefixes()) && Objects.equals(symbols(), other.symbols());
 				}

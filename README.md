@@ -20,7 +20,6 @@ Some of the supported features include:
   Units.simplify("kg^3 m^4 s^-6 A^-1");
   ```
   would return `"J^2 T"`.
-  As the simplification is an expensive operation, the results are cached internally.
 - finding the names of a unit in a specific context, e.g.:
   ```java
   Units.inContext("lx s", UnitContextMatch.COMPATIBLE, PhysicsContext.PHOTOMETRY)
@@ -78,7 +77,7 @@ The artifact can be found at maven central:
 <dependency>
     <groupId>eu.hoefel</groupId>
     <artifactId>units</artifactId>
-    <version>1.0.2</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 

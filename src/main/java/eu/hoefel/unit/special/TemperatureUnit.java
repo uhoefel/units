@@ -107,9 +107,8 @@ public enum TemperatureUnit implements Unit {
 	@Override public Map<Unit, Integer> baseUnits() { return BASE_UNITS; }
 	@Override public List<String> symbols() { return symbols; }
 	@Override public boolean prefixAllowed(String symbol) { return true; }
-	@Override public boolean canUseFactor() { return false; }
+	@Override public boolean isConversionLinear() { return false; }
 	@Override public double factor(String symbol) { return Double.NaN; }
 	@Override public Set<UnitPrefix> prefixes() { return Units.DEFAULT_PREFIXES; }
 	@Override public boolean isBasic() { return false; }
-	@Override public Set<Unit> compatibleUnits() { return Units.DEFAULT_UNITS; }
 }

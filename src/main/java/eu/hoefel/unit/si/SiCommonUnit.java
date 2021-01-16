@@ -182,7 +182,7 @@ public enum SiCommonUnit implements Unit {
 	@Override public Map<Unit, Integer> baseUnits() { return baseUnits.get(this); }
 	@Override public List<String> symbols() { return symbols; }
 	@Override public boolean prefixAllowed(String symbol) { return this != DAY; }
-	@Override public boolean canUseFactor() { return true; }
+	@Override public boolean isConversionLinear() { return true; }
 	@Override public double convertToBaseUnits(double value) { return factor * value; }
 	@Override public double convertFromBaseUnits(double value) { return value / factor; }
 	@Override public Set<UnitPrefix> prefixes() { return DEFAULT_PREFIXES; }

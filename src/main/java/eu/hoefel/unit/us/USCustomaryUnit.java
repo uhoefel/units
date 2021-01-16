@@ -378,8 +378,7 @@ public enum USCustomaryUnit implements Unit {
 	@Override public double convertFromBaseUnits(double value) { return value / factor(symbols().get(0)); }
 	@Override public List<String> symbols() { return symbols; }
 	@Override public boolean prefixAllowed(String symbol) { return false; }
-	@Override public boolean canUseFactor() { return true; }
+	@Override public boolean isConversionLinear() { return true; }
 	@Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
 	@Override public boolean isBasic() { return false; }
-	@Override public Set<Unit> compatibleUnits() { return Units.DEFAULT_UNITS; }
 }

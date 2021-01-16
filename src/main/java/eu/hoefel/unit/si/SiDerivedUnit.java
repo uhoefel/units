@@ -195,7 +195,7 @@ public enum SiDerivedUnit implements Unit {
 	WEBER("Wb");
 
 	/** Units that should be loaded for the sake of convenience. */
-	private static final Set<Unit> compatibleUnits = Set.of(SiBaseUnit.values());
+	private static final Set<Unit> COMPATIBLE_UNITS = Set.of(SiBaseUnit.values());
 
 	/** The symbols representing the coherently derived SI unit. */
 	private final List<String> symbols;
@@ -271,9 +271,9 @@ public enum SiDerivedUnit implements Unit {
 
 	@Override public List<String> symbols() { return symbols; }
 	@Override public boolean prefixAllowed(String symbol) { return true; }
-	@Override public boolean canUseFactor() { return this != DEGREE_CELSIUS; }
+	@Override public boolean isConversionLinear() { return this != DEGREE_CELSIUS; }
 	@Override public double factor(String symbol) { return this == DEGREE_CELSIUS ? Double.NaN : 1; }
 	@Override public Set<UnitPrefix> prefixes() { return DEFAULT_PREFIXES; }
 	@Override public boolean isBasic() { return false; }
-	@Override public Set<Unit> compatibleUnits() { return compatibleUnits; }
+	@Override public Set<Unit> compatibleUnits() { return COMPATIBLE_UNITS; }
 }
