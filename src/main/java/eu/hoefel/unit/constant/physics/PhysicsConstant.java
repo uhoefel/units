@@ -994,9 +994,9 @@ public enum PhysicsConstant implements Constant {
 	/**
 	 * Constructs a physics constant.
 	 * 
-	 * @param value the value of the constant
+	 * @param value       the value of the constant
 	 * @param uncertainty the uncertainty of the constant
-	 * @param units the units of the constant
+	 * @param units       the units of the constant
 	 */
 	private PhysicsConstant(double value, double uncertainty, Unit units) {
 		this.value = value;

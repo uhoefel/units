@@ -26,6 +26,12 @@ Some of the supported features include:
   ```
   would return a navigable set containing `("luminous exposure")`.
 - supports [SI units](https://www.bipm.org/en/publications/si-brochure/), binary units, [imperial units](https://www.legislation.gov.uk/ukpga/1985/72), [US customary units](https://en.wikipedia.org/wiki/United_States_customary_units), [atomic units](https://en.wikipedia.org/wiki/Hartree_atomic_units), [planck units](https://en.wikipedia.org/wiki/Planck_units) and many more. The user can also easily define own units.
+- fully supports arbitrary logarithmic units, e.g.
+  ```java
+  LevelUnit.BEL.inReferenceTo(1, Unit.of("mV")); // automatically determines ref type -> root power
+  LevelUnit.BEL.inReferenceTo(1, Unit.of("W"), LevelUnitReferenceType.POWER); // specify type explicitly
+  Unit.of("ln(re 1 nA)") == LevelUnit.NEPER.inReferenceTo(1, Unit.of("nA")); // true
+  ```
 - supports SI prefixes, binary prefixes and allows the user to easily implement own prefixes
 - Can handle unknown units if not relevant, e.g.:
   ```java

@@ -217,7 +217,7 @@ public enum MathConstant implements Constant {
 	 * Constructs a mathematical constant.
 	 * 
 	 * @param value the value of the constant
-	 * @param oeis the OEIS number
+	 * @param oeis  the OEIS number
 	 */
 	private MathConstant(double value, String oeis) {
 		this.value = value;
