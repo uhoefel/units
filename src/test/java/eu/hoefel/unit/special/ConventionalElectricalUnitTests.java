@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Conventional electrical units")
-@SuppressWarnings("javadoc")
 class ConventionalElectricalUnitTests {
 
 	@DisplayName("Testing conventional electrical units <-> SI conversions")

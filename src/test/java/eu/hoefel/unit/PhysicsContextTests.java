@@ -15,7 +15,6 @@ import eu.hoefel.unit.context.PhysicsContext;
  * @author Udo Hoefel
  */
 @DisplayName("Physics context")
-@SuppressWarnings("javadoc")
 class PhysicsContextTests {
 
 	@DisplayName("Interpreting specific units in physics context")

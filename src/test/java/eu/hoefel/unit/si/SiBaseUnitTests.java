@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Base SI units")
-@SuppressWarnings("javadoc")
 class SiBaseUnitTests {
 
 	@DisplayName("Testing SI base units <-> SI conversions")

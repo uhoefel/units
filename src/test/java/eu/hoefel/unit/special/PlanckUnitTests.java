@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Planck units")
-@SuppressWarnings("javadoc")
 class PlanckUnitTests {
 
 	@DisplayName("Testing Planck units <-> SI conversions")

@@ -1,5 +1,6 @@
 package eu.hoefel.unit.si;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +20,6 @@ import eu.hoefel.unit.constant.physics.PhysicsConstant;
  * @author Udo Hoefel
  */
 @DisplayName("Common SI units")
-@SuppressWarnings("javadoc")
 class SiCommonUnitTests {
 
 	@DisplayName("Testing SI common units <-> SI conversions")
@@ -40,7 +40,8 @@ class SiCommonUnitTests {
 	@ParameterizedTest
 	@EnumSource(SiCommonUnit.class)
 	void testSiCommonUnitBaseUnitSafety(SiCommonUnit unit) {
-		assertThrows(UnsupportedOperationException.class, () -> unit.baseUnits().put(SiBaseUnit.AMPERE, 3));
+		var baseUnits = assertDoesNotThrow(unit::baseUnits);
+		assertThrows(UnsupportedOperationException.class, () -> baseUnits.put(SiBaseUnit.AMPERE, 3));
 	}
 
 	@DisplayName("Testing value of electronvolt <-> elementary charge")

@@ -1,5 +1,6 @@
 package eu.hoefel.unit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -22,7 +23,6 @@ import eu.hoefel.unit.special.PlanckUnit;
  * @author Udo Hoefel
  */
 @DisplayName("Generic SI tests")
-@SuppressWarnings("javadoc")
 class UnitTests {
 
 	@DisplayName("Testing factor")
@@ -122,8 +122,9 @@ class UnitTests {
 				() -> Units.convert(3.0, "mm^-1 °C m MAngstrom YBq Wb^-123", "km^2"),
 				"Could convert to a noncompatible unit.");
 		
+		var placeholderUnit = assertDoesNotThrow(() -> Unit.of("not_a_real_unit"));
 		e = assertThrows(IllegalArgumentException.class,
-				() -> Units.convert(0.0, SiBaseUnit.METER, Unit.of("not_a_real_unit")),
+				() -> Units.convert(0.0, SiBaseUnit.METER, placeholderUnit),
 				"Could convert to a nonexisting unit.");
 		assertEquals("Cannot convert from m (units: m) to not_a_real_unit (unknown unit) (units: not_a_real_unit)", e.getMessage());
 		
@@ -133,7 +134,7 @@ class UnitTests {
 		assertEquals("Cannot convert from m (units: m) to A (units: A)", e.getMessage());
 		
 		e = assertThrows(IllegalArgumentException.class,
-				() -> Units.factor(SiBaseUnit.METER, Unit.of("not_a_real_unit")),
+				() -> Units.factor(SiBaseUnit.METER, placeholderUnit),
 				"Could convert to a nonexisting unit.");
 		assertEquals("Cannot convert from m (units: m) to not_a_real_unit (unknown unit) (units: not_a_real_unit)", e.getMessage());
 		

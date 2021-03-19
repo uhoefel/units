@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Atomic units")
-@SuppressWarnings("javadoc")
 class AtomicUnitTests {
 
 	@DisplayName("Testing atomic units <-> SI conversions")

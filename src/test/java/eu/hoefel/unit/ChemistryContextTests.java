@@ -15,7 +15,6 @@ import eu.hoefel.unit.context.ChemistryContext;
  * @author Udo Hoefel
  */
 @DisplayName("Chemistry context")
-@SuppressWarnings("javadoc")
 class ChemistryContextTests {
 
 	@DisplayName("Interpreting specific units in chemistry context")

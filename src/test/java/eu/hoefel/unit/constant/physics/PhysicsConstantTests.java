@@ -18,7 +18,6 @@ import eu.hoefel.unit.si.SiDerivedUnit;
  * @author Udo Hoefel
  */
 @DisplayName("Physics constants")
-@SuppressWarnings("javadoc")
 class PhysicsConstantTests {
 
 	@DisplayName("Tests toString")

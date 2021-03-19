@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
  * @author Udo Hoefel
  */
 @DisplayName("Math constants")
-@SuppressWarnings("javadoc")
 class MathsConstantTests {
 
 	@DisplayName("Tests math constant toString")

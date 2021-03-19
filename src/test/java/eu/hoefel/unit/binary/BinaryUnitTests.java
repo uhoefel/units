@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Base binary units")
-@SuppressWarnings("javadoc")
 class BinaryUnitTests {
 
 	@DisplayName("Testing binary base units <-> Binary conversions")

@@ -18,7 +18,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Swabian units")
-@SuppressWarnings("javadoc")
 class SwabianUnitTests {
 
 	@DisplayName("Testing Swabian units <-> SI conversions")

@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Imperial units")
-@SuppressWarnings("javadoc")
 class ImperialUnitTests {
 
 	@DisplayName("Testing imperial units <-> SI conversions")

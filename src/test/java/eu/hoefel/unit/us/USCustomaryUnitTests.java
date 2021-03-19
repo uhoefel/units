@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("US customary units")
-@SuppressWarnings("javadoc")
 class USCustomaryUnitTests {
 
 	@DisplayName("Testing US customary units <-> SI conversions")

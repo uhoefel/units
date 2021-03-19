@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Fusion plasma units")
-@SuppressWarnings("javadoc")
 class FusionPlasmaUnitTests {
 
 	@DisplayName("Testing fusion plasma units <-> SI conversions")

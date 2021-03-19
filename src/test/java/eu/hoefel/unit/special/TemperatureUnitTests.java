@@ -16,7 +16,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Temperature units")
-@SuppressWarnings("javadoc")
 class TemperatureUnitTests {
 
 	@DisplayName("Testing temperature units <-> SI conversions")

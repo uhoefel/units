@@ -17,7 +17,6 @@ import eu.hoefel.unit.Units;
  * @author Udo Hoefel
  */
 @DisplayName("Natural units")
-@SuppressWarnings("javadoc")
 class NaturalUnitTests {
 
 	@DisplayName("Testing natural units <-> SI conversions")

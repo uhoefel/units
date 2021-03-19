@@ -1,5 +1,6 @@
 package eu.hoefel.unit.constant;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -14,7 +15,6 @@ import eu.hoefel.unit.Unit;
  * @author Udo Hoefel
  */
 @DisplayName("Constants")
-@SuppressWarnings("javadoc")
 class ConstantTests {
 
 	@DisplayName("Testing generic scientific constants")
@@ -31,7 +31,8 @@ class ConstantTests {
 		gsc = Constant.of(4, 0, "kg^4").root(2);
 		assertEquals("kg^2", gsc.unit().symbols().get(0));
 		
-		var e = assertThrows(UnsupportedOperationException.class, () -> Constant.of(1, 0, "mol^10").root(3));
+		var constant = assertDoesNotThrow(() -> Constant.of(1, 0, "mol^10"));
+		var e = assertThrows(UnsupportedOperationException.class, () -> constant.root(3));
 		assertEquals("Taking the 3rd root of mol^10 would yield a non-integer exponent (3.333333) for mol. "
 				+ "Taking the root of a Constant is (currently) only allowed if the unit "
 				+ "exponents stay integers.", e.getMessage());
