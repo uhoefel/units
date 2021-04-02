@@ -127,10 +127,12 @@ public interface Unit {
 	 * that, if e.g. {@link Units#convert(double, String, String, Unit[]...)} is
 	 * used with the current unit provided within the {@code extraUnits} some
 	 * default units are still available. To give a practical example:
+	 * 
 	 * <p>
 	 * {@code // Does only work because the TemperatureUnit provides}<br>
 	 * {@code // SiBaseUnit.KELVIN in its compatible units}<br>
 	 * {@code Units.convert(3, "K", "°F", TemperatureUnit.values());}
+	 * 
 	 * <p>
 	 * The reason for not hardcoding the {@link Units#DEFAULT_UNITS} is that it
 	 * would foreclose the option for unit systems that are completely detached from
@@ -140,12 +142,13 @@ public interface Unit {
 	 * 
 	 * @return compatible units to be checked as well
 	 */
-	default Set<Unit> compatibleUnits() {
+	public default Set<Unit> compatibleUnits() {
 		return Units.DEFAULT_UNITS;
 	}
 
 	/**
 	 * Gets the parser to recognize this unit in a given string.
+	 * 
 	 * <p>
 	 * This method only needs to be overridden if a unit requires non-standard
 	 * parsing behavior, e.g. the units in {@link eu.hoefel.unit.level.LevelUnit}
@@ -162,7 +165,7 @@ public interface Unit {
 	 *         corresponding string range. The inputs to the parser should be
 	 *         non-null.
 	 */
-	default BiFunction<String, Unit[][], NavigableMap<StringRange, UnitInfo>> parser() {
+	public default BiFunction<String, Unit[][], NavigableMap<StringRange, UnitInfo>> parser() {
 		return Units.DEFAULT_PARSER;
 	}
 
@@ -170,15 +173,16 @@ public interface Unit {
 	 * Gets a unit representation of the given units. Can handle composite units
 	 * (i.e., it can handle units like e.g. "kg m^2 s^-1") as well as non-composite
 	 * units (i.e., it can handle units like "kg", "m^2", "s").
+	 * 
 	 * <p>
 	 * Note that the returned unit omits the lambdas used in
 	 * {@link #prefixAllowed(String)}, {@link #factor(String)},
 	 * {@link #convertToBaseUnits(double)} and {@link #convertFromBaseUnits(double)}
 	 * from the equals and hashCode methods for practical reasons:
+	 * 
 	 * <p>
 	 * {@code // false if the above mentioned lambdas would be taken into account}<br>
 	 * {@code Unit.of("kg^2").equals(Unit.of("kg^2"))}<br>
-	 * <p>
 	 * 
 	 * @param units      the units, e.g. "kg^2 s^-1"
 	 * @param extraUnits the additional units to use for parsing the units
@@ -351,8 +355,9 @@ public interface Unit {
 			
 			@Override
 			public String toString() {
-				return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-						+ isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+				return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic()
+						+ ", canUseFactor=" + isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits="
+						+ compatibleUnits + "]";
 			}
 
 			@Override
