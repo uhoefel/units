@@ -16,6 +16,7 @@ public enum UnitContextMatch {
 	/**
 	 * An exact match of two units is only fulfilled if all units and exponents are
 	 * identical in both units.
+	 * 
 	 * <p>
 	 * For example:<br>
 	 * <ul>
@@ -30,7 +31,8 @@ public enum UnitContextMatch {
 	/**
 	 * Two units are considered equivalent if one can convert one into the other
 	 * one, and no prefactors/shifts are necessary by the transformation.
-	 *  <p>
+	 * 
+	 * <p>
 	 * For example:<br>
 	 * <ul>
 	 * <li>{@code "kg^3 s^-1 sr"} is compatible to {@code "s^-1 kg^3"}
@@ -42,6 +44,7 @@ public enum UnitContextMatch {
 	/**
 	 * Two units are considered compatible if one can convert one into the other
 	 * one, regardless of potential prefactors/shifts.
+	 * 
 	 * <p>
 	 * For example:<br>
 	 * <ul>
@@ -71,7 +74,7 @@ public enum UnitContextMatch {
 		 * @param extraUnits additional units to check against
 		 * @return true if the units "match"
 		 */
-	    boolean matches(String origin, String target, Unit[]... extraUnits);
+	    public boolean matches(String origin, String target, Unit[]... extraUnits);
 	}
 
 	/**

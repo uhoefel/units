@@ -10,7 +10,7 @@ import eu.hoefel.unit.Units;
 import eu.hoefel.unit.history.roman.RomanUnit;
 import eu.hoefel.unit.si.SiBaseUnit;
 import eu.hoefel.unit.si.SiCommonUnit;
-import eu.hoefel.unit.us.USCustomaryUnit;
+import eu.hoefel.unit.us.UsCustomaryUnit;
 
 /**
  * The (British) imperial units were first defined in in the
@@ -23,7 +23,7 @@ import eu.hoefel.unit.us.USCustomaryUnit;
  * <a href="https://www.legislation.gov.uk/ukpga/1985/72">Weights and Measures
  * Act 1985</a>), which is why the base units of the SI are returned if
  * {@link #baseUnits()} gets called. The imperial units are closely related to
- * the {@link USCustomaryUnit United States customary units}.
+ * the {@link UsCustomaryUnit United States customary units}.
  * 
  * @author Udo Höfel
  */

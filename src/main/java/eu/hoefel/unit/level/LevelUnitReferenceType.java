@@ -102,7 +102,7 @@ public enum LevelUnitReferenceType {
 	}
 
 	/**
-	 * Checks the convertibility (and subqsequently proportionality if nothing has
+	 * Checks the convertibility (and subsequently proportionality if nothing has
 	 * been found) of <code>refUnit</code> to known
 	 * {@link LevelUnitReferenceType#POWER power} and
 	 * {@link LevelUnitReferenceType#ROOT_POWER root power} units and gets the type
@@ -115,9 +115,9 @@ public enum LevelUnitReferenceType {
 		Objects.requireNonNull(refUnit);
 
 		List<BiPredicate<Unit, Unit>> checks = List.of(Units::convertible, Units::proportional);
-		for (BiPredicate<Unit, Unit> check : checks) {
-			for (LevelUnitReferenceType type : LevelUnitReferenceType.values()) {
-				for (Unit typeRefUnit : type.referenceUnits()) {
+		for (var check : checks) {
+			for (var type : LevelUnitReferenceType.values()) {
+				for (var typeRefUnit : type.referenceUnits()) {
 					if (check.test(refUnit, typeRefUnit)) {
 						return Optional.of(type);
 					}

@@ -6,7 +6,7 @@ import java.util.Map;
  * Helper record for passing information about units (like "Pa") and unit
  * composites (like "kg^2 m^-3 s^-1") around. Not intended to be public.
  * 
- * @param factor        the conversion factor to base units, includingpotential prefixes
+ * @param factor        the conversion factor to base units, including potential prefixes
  * @param baseUnitInfos a map of all base units with their exponents that
  *                      correspond to the unit for which the information was
  *                      collected
