@@ -130,6 +130,10 @@ public final class Units {
      */
     public static final record StringRange(int from, int to) implements Comparable<StringRange> {
 
+        /** Compares two StringRanges by their starting index, and then by their length. */
+        private static final Comparator<StringRange> COMPARATOR = Comparator.comparingInt(StringRange::from)
+                                                                            .thenComparingInt(StringRange::length);
+
         /**
          * Constructs a new string range.
          * 
@@ -145,16 +149,7 @@ public final class Units {
 
         @Override
         public final int compareTo(StringRange sr) {
-            if (from < sr.from) return -1;
-            if (from == sr.from) {
-                if (length() < sr.length()) {
-                    return -1;
-                } else if (length() == sr.length()) {
-                    return 0;
-                }
-                return 1;
-            }
-            return 1;
+            return COMPARATOR.compare(this, sr);
         }
 
         /**
