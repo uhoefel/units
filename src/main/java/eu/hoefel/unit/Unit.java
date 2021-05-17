@@ -69,8 +69,8 @@ public interface Unit {
 	 * @param symbol the symbol of which one wants the corresponding conversion
 	 *               factor. Only relevant if different symbols correspond to
 	 *               different factors, like e.g. for "kg" and "g" (which both are
-	 *               recognized as representations of
-	 *               {@link eu.hoefel.unit.si.SiBaseUnit#KILOGRAM}).
+	 *               recognized as representations of the 
+	 *               {@link eu.hoefel.unit.si.SiBaseUnit#KILOGRAM kilogram}).
 	 * @return the conversion factor to base SI units
 	 */
 	public double factor(String symbol);
