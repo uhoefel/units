@@ -19,6 +19,9 @@
 		<junit.platform.version>1.7.1</junit.platform.version>
 		<jdk.version>16</jdk.version>
 		<jvm.extraArgs></jvm.extraArgs>
+		<sonar.projectKey>uhoefel_units</sonar.projectKey>
+		<sonar.organization>uhoefel</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<url>${uhoefel.git.url}${project.name}</url>
