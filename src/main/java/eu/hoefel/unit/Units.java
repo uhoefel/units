@@ -178,7 +178,7 @@ public final class Units {
          * @return true if the string ranges intersect
          */
         public final boolean intersects(StringRange sr) {
-            return !(to < sr.from || from > sr.to);
+            return to >= sr.from && from <= sr.to;
         }
     }
 
@@ -634,9 +634,7 @@ public final class Units {
             Unit[] flatExtraUnits = flattenUnits(extraUnits);
             for (Unit singleUnit : flatExtraUnits) {
                 units.add(singleUnit);
-                for (Unit compatUnit : singleUnit.compatibleUnits()) {
-                    units.add(compatUnit);
-                }
+                units.addAll(singleUnit.compatibleUnits());
             }
 
             units.add(EMPTY_UNIT);
@@ -723,15 +721,15 @@ public final class Units {
         Objects.requireNonNull(units);
 
         int size = 0;
-        for (int i = 0; i < units.length; i++) {
-            size += units[i].length;
+        for (Unit[] unit : units) {
+            size += unit.length;
         }
 
         Unit[] flat = new Unit[size];
         int index = 0;
-        for (int i = 0; i < units.length; i++) {
-            int numNew = units[i].length;
-            System.arraycopy(units[i], 0, flat, index, numNew);
+        for (Unit[] unit : units) {
+            int numNew = unit.length;
+            System.arraycopy(unit, 0, flat, index, numNew);
             index += numNew;
         }
 
@@ -846,22 +844,25 @@ public final class Units {
         if (origin == target) {
             return value;
         }
+        
+        if (!origin.baseUnits().equals(target.baseUnits())) {
+            throw new IllegalArgumentException("Cannot convert from %s (units: %s) to %s (units: %s)".formatted(
+                    toString(origin), toSymbol(origin.baseUnits()), toString(target), toSymbol(target.baseUnits())));
+        }
 
-        if (origin.baseUnits().equals(target.baseUnits())) {
-            if (origin.isConversionLinear()) {
-                value *= origin.factor(origin.symbols().get(0));
-            } else {
-                value = origin.convertToBaseUnits(value);
-            }
-            if (target.isConversionLinear()) {
-                value /= target.factor(target.symbols().get(0));
-            } else {
-                value = target.convertFromBaseUnits(value);
-            }
+        if (origin.isConversionLinear()) {
+            // TODO
+            // does this distinction really really save time here?
+            // same for the operation on the target
+            value *= origin.factor(origin.symbols().get(0));
         } else {
-            throw new IllegalArgumentException(
-                    "Cannot convert from %s (units: %s) to %s (units: %s)".formatted(toString(origin),
-                            toSymbol(origin.baseUnits()), toString(target), toSymbol(target.baseUnits())));
+            value = origin.convertToBaseUnits(value);
+        }
+
+        if (target.isConversionLinear()) {
+            value /= target.factor(target.symbols().get(0));
+        } else {
+            value = target.convertFromBaseUnits(value);
         }
 
         return value;
@@ -1021,8 +1022,8 @@ public final class Units {
      * @return true if convertible
      */
     private static final boolean internalConversionCheck(Collection<UnitInfo> originInfos, Collection<UnitInfo> targetInfos) {
-        Map<Unit, Integer> cleanOriginInfos = cleanup(originInfos).baseUnitInfos();
-        Map<Unit, Integer> cleanTargetInfos = cleanup(targetInfos).baseUnitInfos();
+        var cleanOriginInfos = cleanup(originInfos).baseUnitInfos();
+        var cleanTargetInfos = cleanup(targetInfos).baseUnitInfos();
         return cleanOriginInfos.equals(cleanTargetInfos);
     }
 
@@ -1221,9 +1222,7 @@ public final class Units {
             refUnits = new HashSet<>();
             for (Unit singleUnit : flatExtraUnits) {
                 refUnits.add(singleUnit);
-                for (Unit compatUnit : singleUnit.compatibleUnits()) {
-                    refUnits.add(compatUnit);
-                }
+                refUnits.addAll(singleUnit.compatibleUnits());
             }
 
             // for code simplification purposes we treat the single reference unit checks as
