@@ -15,20 +15,21 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Atomic units")
 class AtomicUnitTests {
 
-	@DisplayName("Testing atomic units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(AtomicUnit.class)
-	void testAtomicUnitConversions(AtomicUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing atomic units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(AtomicUnit.class)
+    void testAtomicUnitConversions(AtomicUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing atomic units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(AtomicUnit.class)
-	void testAtomicUnitBaseUnits(AtomicUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing atomic units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(AtomicUnit.class)
+    void testAtomicUnitBaseUnits(AtomicUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }

@@ -12,17 +12,17 @@ import eu.hoefel.unit.si.SiPrefix;
  */
 public interface UnitPrefix {
 
-	/**
-	 * Provides corresponding (potentially multiple) prefix symbols, e.g. "k" or "M".
-	 * 
-	 * @return the unit symbols
-	 */
-	public List<String> symbols();
+    /**
+     * Provides corresponding (potentially multiple) prefix symbols, e.g. "k" or "M".
+     * 
+     * @return the unit symbols
+     */
+    public List<String> symbols();
 
-	/**
-	 * Gets the factor this prefix corresponds to.
-	 * 
-	 * @return the conversion factor
-	 */
-	public double factor();
+    /**
+     * Gets the factor this prefix corresponds to.
+     * 
+     * @return the conversion factor
+     */
+    public double factor();
 }

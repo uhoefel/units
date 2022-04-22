@@ -16,27 +16,28 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Natural units")
 class NaturalUnitTests {
 
-	@DisplayName("Testing natural units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(NaturalUnit.class)
-	void testNaturalUnitConversions(NaturalUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing natural units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(NaturalUnit.class)
+    void testNaturalUnitConversions(NaturalUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing natural units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(NaturalUnit.class)
-	void testNaturalUnitBaseUnits(NaturalUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing natural units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(NaturalUnit.class)
+    void testNaturalUnitBaseUnits(NaturalUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 
-	@DisplayName("Testing specific natural unit <-> SI conversions")
-	@Test
-	void testNaturalUnitConversion() {
-		assertEquals(3.8615926796089057E-13, Units.convert(1, "lambdabarC", "m", NaturalUnit.values()), 1e-23);
-		assertEquals(3.8615926796089057E-13, Units.convert(1, NaturalUnit.OF_LENGTH, Unit.of("m")), 1e-23);
-	}
+    @DisplayName("Testing specific natural unit <-> SI conversions")
+    @Test
+    void testNaturalUnitConversion() {
+        assertEquals(3.8615926796089057E-13, Units.convert(1, "lambdabarC", "m", NaturalUnit.values()), 1e-23);
+        assertEquals(3.8615926796089057E-13, Units.convert(1, NaturalUnit.OF_LENGTH, Unit.of("m")), 1e-23);
+    }
 }

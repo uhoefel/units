@@ -15,21 +15,22 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Temperature units")
 class TemperatureUnitTests {
 
-	@DisplayName("Testing temperature units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(TemperatureUnit.class)
-	void testTemperatureUnitConversions(TemperatureUnit unit) {
-		// there are some conversion losses, unfortunately
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)), 1e-13);
-	}
+    @DisplayName("Testing temperature units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(TemperatureUnit.class)
+    void testTemperatureUnitConversions(TemperatureUnit unit) {
+        // there are some conversion losses, unfortunately
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)), 1e-13);
+    }
 
-	@DisplayName("Testing temperature units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(TemperatureUnit.class)
-	void testTemperatureUnitBaseUnits(TemperatureUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing temperature units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(TemperatureUnit.class)
+    void testTemperatureUnitBaseUnits(TemperatureUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }

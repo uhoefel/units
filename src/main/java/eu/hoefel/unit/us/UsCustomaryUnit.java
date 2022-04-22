@@ -19,12 +19,10 @@ import eu.hoefel.unit.si.SiPrefix;
  * to {@link ImperialUnit imperial units}, although one should note that the
  * imperial units were changed later on, such that there are notable differences
  * for some units).
- * 
  * <p>
  * Many US customary units were redefined with respect to the {@link SiBaseUnit
  * metric system} by the Mendenhall Order of 1893 and again in 1959 by the
  * international yard and pound agreement.
- * 
  * <p>
  * Nowadays, the customary units are largely used in commercial activities and
  * in a personal context. In scientific, military and many more specialized

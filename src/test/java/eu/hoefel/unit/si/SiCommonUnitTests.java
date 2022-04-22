@@ -19,40 +19,41 @@ import eu.hoefel.unit.constant.physics.PhysicsConstant;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Common SI units")
 class SiCommonUnitTests {
 
-	@DisplayName("Testing SI common units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(SiCommonUnit.class)
-	void testSiCommonUnitConversions(SiCommonUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing SI common units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(SiCommonUnit.class)
+    void testSiCommonUnitConversions(SiCommonUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing SI common units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(SiCommonUnit.class)
-	void testSiCommonUnitBaseUnits(SiCommonUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing SI common units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(SiCommonUnit.class)
+    void testSiCommonUnitBaseUnits(SiCommonUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 
-	@DisplayName("Testing safeness of baseUnits")
-	@ParameterizedTest
-	@EnumSource(SiCommonUnit.class)
-	void testSiCommonUnitBaseUnitSafety(SiCommonUnit unit) {
-		var baseUnits = assertDoesNotThrow(unit::baseUnits);
-		assertThrows(UnsupportedOperationException.class, () -> baseUnits.put(SiBaseUnit.AMPERE, 3));
-	}
+    @DisplayName("Testing safeness of baseUnits")
+    @ParameterizedTest
+    @EnumSource(SiCommonUnit.class)
+    void testSiCommonUnitBaseUnitSafety(SiCommonUnit unit) {
+        var baseUnits = assertDoesNotThrow(unit::baseUnits);
+        assertThrows(UnsupportedOperationException.class, () -> baseUnits.put(SiBaseUnit.AMPERE, 3));
+    }
 
-	@DisplayName("Testing value of electronvolt <-> elementary charge")
-	@Test
-	void testElectronvoltValue() {
-		assertEquals(PhysicsConstant.ELEMENTARY_CHARGE.value(), SiCommonUnit.ELECTRONVOLT.factor(""));
-	}
+    @DisplayName("Testing value of electronvolt <-> elementary charge")
+    @Test
+    void testElectronvoltValue() {
+        assertEquals(PhysicsConstant.ELEMENTARY_CHARGE.value(), SiCommonUnit.ELECTRONVOLT.factor(""));
+    }
 
-	@DisplayName("Testing value of dalton <-> unified atomic mass unit")
-	@Test
-	void testDaltonValue() {
-		assertEquals(PhysicsConstant.UNIFIED_ATOMIC_MASS_UNIT.value(), SiCommonUnit.DALTON.factor(""));
-	}
+    @DisplayName("Testing value of dalton <-> unified atomic mass unit")
+    @Test
+    void testDaltonValue() {
+        assertEquals(PhysicsConstant.UNIFIED_ATOMIC_MASS_UNIT.value(), SiCommonUnit.DALTON.factor(""));
+    }
 }

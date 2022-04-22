@@ -15,20 +15,21 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Conventional electrical units")
 class ConventionalElectricalUnitTests {
 
-	@DisplayName("Testing conventional electrical units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(ConventionalElectricalUnit.class)
-	void testConventionalElectricalUnitConversions(ConventionalElectricalUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing conventional electrical units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(ConventionalElectricalUnit.class)
+    void testConventionalElectricalUnitConversions(ConventionalElectricalUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing conventional electrical units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(ConventionalElectricalUnit.class)
-	void testConventionalElectricalUnitBaseUnits(ConventionalElectricalUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing conventional electrical units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(ConventionalElectricalUnit.class)
+    void testConventionalElectricalUnitBaseUnits(ConventionalElectricalUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }

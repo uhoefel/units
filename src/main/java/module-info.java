@@ -43,35 +43,20 @@
  * @author Udo Hoefel
  */
 module eu.hoefel.unit {
-	exports eu.hoefel.unit;
-	exports eu.hoefel.unit.binary;
-	exports eu.hoefel.unit.constant;
-	exports eu.hoefel.unit.constant.math;
-	exports eu.hoefel.unit.constant.physics;
-	exports eu.hoefel.unit.context;
-	exports eu.hoefel.unit.history.roman;
-	exports eu.hoefel.unit.imperial;
-	exports eu.hoefel.unit.level;
-	exports eu.hoefel.unit.si;
-	exports eu.hoefel.unit.special;
-	exports eu.hoefel.unit.us;
+    exports eu.hoefel.unit;
+    exports eu.hoefel.unit.binary;
+    exports eu.hoefel.unit.constant;
+    exports eu.hoefel.unit.constant.math;
+    exports eu.hoefel.unit.constant.physics;
+    exports eu.hoefel.unit.context;
+    exports eu.hoefel.unit.history.roman;
+    exports eu.hoefel.unit.imperial;
+    exports eu.hoefel.unit.level;
+    exports eu.hoefel.unit.si;
+    exports eu.hoefel.unit.special;
+    exports eu.hoefel.unit.us;
 
-	// ugh...
-	opens eu.hoefel.unit                  to org.junit.platform.commons;
-	opens eu.hoefel.unit.binary           to org.junit.platform.commons;
-	opens eu.hoefel.unit.constant         to org.junit.platform.commons;
-	opens eu.hoefel.unit.constant.math    to org.junit.platform.commons;
-	opens eu.hoefel.unit.constant.physics to org.junit.platform.commons;
-	opens eu.hoefel.unit.context          to org.junit.platform.commons;
-	opens eu.hoefel.unit.history.roman    to org.junit.platform.commons;
-	opens eu.hoefel.unit.imperial         to org.junit.platform.commons;
-	opens eu.hoefel.unit.level            to org.junit.platform.commons;
-	opens eu.hoefel.unit.si               to org.junit.platform.commons;
-	opens eu.hoefel.unit.special          to org.junit.platform.commons;
-	opens eu.hoefel.unit.us               to org.junit.platform.commons;
-
-	requires java.logging;
-	requires org.junit.jupiter.api;
-	requires eu.hoefel.utils;
-	requires transitive eu.hoefel.jatex;
+    requires java.logging;
+    requires eu.hoefel.utils;
+    requires transitive eu.hoefel.jatex;
 }

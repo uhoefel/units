@@ -302,7 +302,7 @@ public final class Units {
      */
     public static final Unit unknownUnit(String unit) {
         Objects.requireNonNull(unit);
-        
+
         // This is a bit ugly:
         // As we cannot sensibly reference the unit itself in baseUnits() as this
         // produces a stackoverflow error, we have an "inner" unit that basically
@@ -343,7 +343,7 @@ public final class Units {
                 return false;
             }
         };
-        
+
         return new Unit() {
             @Override public List<String> symbols() { return List.of(unit); }
             @Override public Set<UnitPrefix> prefixes() { return EMPTY_PREFIXES; }
@@ -650,7 +650,7 @@ public final class Units {
             UnitInfo info = identifyUnitInfo(unitParts, refUnit, prefixes);
             if (info != null) return info;
         }
-        
+
         return null;
     }
 
@@ -789,7 +789,7 @@ public final class Units {
             if (origin.isConversionLinear() && target.isConversionLinear()) {
                 return origin.factor(origin.symbols().get(0)) / target.factor(target.symbols().get(0));
             }
-            
+
             throw new IllegalArgumentException(
                     ("Conversion from \"%s\" to \"%s\" contains non-multiplicative operations, "
                             + "hence a conversion factor cannot be used here.").formatted(toString(origin),
@@ -1212,12 +1212,13 @@ public final class Units {
         Objects.requireNonNull(units);
         Objects.requireNonNull(extraUnits);
 
-        Set<Unit> refUnits = new HashSet<>();
+        final Set<Unit> refUnits;
         if (extraUnits.length == 0) {
             refUnits = DEFAULT_UNITS;
         } else {
             Unit[] flatExtraUnits = Stream.of(extraUnits).flatMap(Stream::of).toArray(Unit[]::new);
 
+            refUnits = new HashSet<>();
             for (Unit singleUnit : flatExtraUnits) {
                 refUnits.add(singleUnit);
                 for (Unit compatUnit : singleUnit.compatibleUnits()) {
@@ -1230,14 +1231,11 @@ public final class Units {
             refUnits.add(EMPTY_UNIT);
         }
 
-        // TODO I think in Java 17 one can remove this, just to make refUnits effectively final
-        var finalRefUnits = Set.copyOf(refUnits);
-
         // make sure we don't get a gigantic cache over time
         if (simplifiedUnits.size() > 100) simplifiedUnits.clear();
 
         return simplifiedUnits.computeIfAbsent(new StringBasedUnit(units, refUnits), k -> {
-            var compatibleSymbols = searchSimplificationSpace(units, finalRefUnits, extraUnits);
+            var compatibleSymbols = searchSimplificationSpace(units, refUnits, extraUnits);
 
             if (!compatibleSymbols.isEmpty()) {
                 // so we might have bunch of equivalent symbols, like e.g. "N^2 Wb" and "J^2 T".
@@ -1270,7 +1268,7 @@ public final class Units {
             System.arraycopy(extraUnits, 0, allUnitReferences, 0, extraUnits.length);
             allUnitReferences[allUnitReferences.length - 1] = refUnits.stream().toArray(Unit[]::new);
         }
-        
+
         Unit originalUnit = Unit.of(units, extraUnits);
         var baseUnits = originalUnit.baseUnits(); // for quickly skipping some combinations below
 
@@ -1356,17 +1354,17 @@ public final class Units {
             }
             checkedUnits.add(entry.getKey());
         }
-        
+
         // Then we check the keys from ref unit 1, but without already checked units.
         for (Entry<Unit, Integer> entry : refUnit1.baseUnits().entrySet()) {
             if (checkedUnits.contains(entry.getKey())) continue;
 
-			if (exponent1 * entry.getValue()
-					+ exponent2 * refUnit2.baseUnits().getOrDefault(entry.getKey(), 0) != baseUnits
-							.getOrDefault(entry.getKey(), 0)) {
-				// base units don't match
-				return true;
-			}
+            if (exponent1 * entry.getValue()
+                    + exponent2 * refUnit2.baseUnits().getOrDefault(entry.getKey(), 0) != baseUnits
+                            .getOrDefault(entry.getKey(), 0)) {
+                // base units don't match
+                return true;
+            }
             checkedUnits.add(entry.getKey());
         }
 
@@ -1432,7 +1430,6 @@ public final class Units {
      * Gets the names of the units, within the specified context, whose symbols
      * match (for the specific meaning of "match" here see {@link UnitContextMatch})
      * the given unit.
-     * 
      * <p>
      * Example usage:<br>
      * <code>Units.inContext("kg", UnitContextMatch.COMPATIBLE, PhysicsContext.values());</code>
@@ -1454,7 +1451,7 @@ public final class Units {
         NavigableSet<String> ret = new TreeSet<>();
         // One could have a more performant implementation, but that seems like code
         // duplication not worth the effort, at least at the moment
-        UnitContext[] contextsToUse = contexts == null || contexts.length == 0 ? PhysicsContext.values() : contexts;
+        UnitContext[] contextsToUse = contexts.length == 0 ? PhysicsContext.values() : contexts;
         for (String symbol : unit.symbols()) {
             for (UnitContext context : contextsToUse) {
                 ret.addAll(inContext(symbol, match, context));
@@ -1541,7 +1538,7 @@ public final class Units {
                 relevantUnitInfos.remove(range);
             }
         });
-        
+
         // make sure we have no overlapping ranges
         for (var sr1 : relevantUnitInfos.entrySet()) {
             for (var sr2 : relevantUnitInfos.entrySet()) {
@@ -1556,7 +1553,7 @@ public final class Units {
                 }
             }
         }
-        
+
         return new ArrayList<>(relevantUnitInfos.values());
     }
 }

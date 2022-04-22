@@ -14,17 +14,18 @@ import eu.hoefel.unit.context.PhysicsContext;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Physics context")
 class PhysicsContextTests {
 
-	@DisplayName("Interpreting specific units in physics context")
-	@Test
-	void testPhysicsContext() {
-		assertEquals(Set.of("energy"), Units.inContext("J", UnitContextMatch.COMPATIBLE, PhysicsContext.GENERAL));
-		assertEquals(Set.of("luminous exposure"), Units.inContext("lx s", UnitContextMatch.COMPATIBLE, PhysicsContext.PHOTOMETRY));
-		assertEquals(Set.of("luminous flux", "luminous intensity"), PhysicsContext.PHOTOMETRY.forUnits("cd", UnitContextMatch.COMPATIBLE));
-		assertEquals(Set.of("radiant flux", "radiant intensity"), Units.inContext("W", UnitContextMatch.COMPATIBLE, PhysicsContext.RADIOMETRY));
-		assertEquals(Set.of("irradiance", "radiance", "radiant exitance", "radiosity"), Units.inContext("W sr^-1 m^-2", UnitContextMatch.COMPATIBLE, PhysicsContext.RADIOMETRY));
-		assertEquals(Set.of("luminous exposure"), Units.inContext("lx s", UnitContextMatch.COMPATIBLE, PhysicsContext.PHOTOMETRY));
-	}
+    @DisplayName("Interpreting specific units in physics context")
+    @Test
+    void testPhysicsContext() {
+        assertEquals(Set.of("energy"), Units.inContext("J", UnitContextMatch.COMPATIBLE, PhysicsContext.GENERAL));
+        assertEquals(Set.of("luminous exposure"), Units.inContext("lx s", UnitContextMatch.COMPATIBLE, PhysicsContext.PHOTOMETRY));
+        assertEquals(Set.of("luminous flux", "luminous intensity"), PhysicsContext.PHOTOMETRY.forUnits("cd", UnitContextMatch.COMPATIBLE));
+        assertEquals(Set.of("radiant flux", "radiant intensity"), Units.inContext("W", UnitContextMatch.COMPATIBLE, PhysicsContext.RADIOMETRY));
+        assertEquals(Set.of("irradiance", "radiance", "radiant exitance", "radiosity"), Units.inContext("W sr^-1 m^-2", UnitContextMatch.COMPATIBLE, PhysicsContext.RADIOMETRY));
+        assertEquals(Set.of("luminous exposure"), Units.inContext("lx s", UnitContextMatch.COMPATIBLE, PhysicsContext.PHOTOMETRY));
+    }
 }

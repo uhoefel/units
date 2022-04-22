@@ -13,15 +13,16 @@ import eu.hoefel.unit.context.PhysicsContext;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Generic unit context")
 class UnitContextTests {
 
-	@DisplayName("Interpreting specific units with different matching types")
-	@Test
-	void testUnitContext() {
-		assertEquals(Set.of("angular velocity"), Units.inContext("rad s^-1", UnitContextMatch.EXACT, PhysicsContext.GENERAL));
-		assertEquals(Set.of("angular velocity", "frequency"), Units.inContext("rad s^-1", UnitContextMatch.EQUIVALENT, PhysicsContext.GENERAL));
-		assertEquals(Set.of(), Units.inContext("rad ms^-1", UnitContextMatch.EQUIVALENT, PhysicsContext.GENERAL));
-		assertEquals(Set.of("angular velocity", "frequency"), Units.inContext("rad ms^-1", UnitContextMatch.COMPATIBLE, PhysicsContext.GENERAL));
-	}
+    @DisplayName("Interpreting specific units with different matching types")
+    @Test
+    void testUnitContext() {
+        assertEquals(Set.of("angular velocity"), Units.inContext("rad s^-1", UnitContextMatch.EXACT, PhysicsContext.GENERAL));
+        assertEquals(Set.of("angular velocity", "frequency"), Units.inContext("rad s^-1", UnitContextMatch.EQUIVALENT, PhysicsContext.GENERAL));
+        assertEquals(Set.of(), Units.inContext("rad ms^-1", UnitContextMatch.EQUIVALENT, PhysicsContext.GENERAL));
+        assertEquals(Set.of("angular velocity", "frequency"), Units.inContext("rad ms^-1", UnitContextMatch.COMPATIBLE, PhysicsContext.GENERAL));
+    }
 }

@@ -15,20 +15,21 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Derived SI units")
 class SiDerivedUnitTests {
 
-	@DisplayName("Testing SI derived units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(SiDerivedUnit.class)
-	void testSiDerivedUnitUnitConversions(SiDerivedUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing SI derived units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(SiDerivedUnit.class)
+    void testSiDerivedUnitUnitConversions(SiDerivedUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing SI derived units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(SiDerivedUnit.class)
-	void testSiDerivedUnitBaseUnits(SiDerivedUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing SI derived units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(SiDerivedUnit.class)
+    void testSiDerivedUnitBaseUnits(SiDerivedUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }

@@ -15,20 +15,21 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Fusion plasma units")
 class FusionPlasmaUnitTests {
 
-	@DisplayName("Testing fusion plasma units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(FusionPlasmaUnit.class)
-	void testFusionPlasmaUnitConversions(FusionPlasmaUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing fusion plasma units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(FusionPlasmaUnit.class)
+    void testFusionPlasmaUnitConversions(FusionPlasmaUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing fusion plasma units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(FusionPlasmaUnit.class)
-	void testFusionPlasmaUnitBaseUnits(FusionPlasmaUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing fusion plasma units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(FusionPlasmaUnit.class)
+    void testFusionPlasmaUnitBaseUnits(FusionPlasmaUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }

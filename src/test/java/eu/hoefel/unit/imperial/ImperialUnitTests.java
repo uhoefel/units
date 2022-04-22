@@ -15,20 +15,21 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Imperial units")
 class ImperialUnitTests {
 
-	@DisplayName("Testing imperial units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(ImperialUnit.class)
-	void testBinaryBaseUnitConversions(ImperialUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing imperial units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(ImperialUnit.class)
+    void testBinaryBaseUnitConversions(ImperialUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing imperial units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(ImperialUnit.class)
-	void testBinaryBaseUnitBaseUnits(ImperialUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing imperial units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(ImperialUnit.class)
+    void testBinaryBaseUnitBaseUnits(ImperialUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }

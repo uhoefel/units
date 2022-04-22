@@ -31,78 +31,78 @@ import eu.hoefel.unit.si.SiDerivedUnit;
  */
 public enum ConventionalElectricalUnit implements Unit {
 
-	/** The conventional counterpart of the  {@link SiBaseUnit#AMPERE ampere}. */
-	AMPERE(1.0000000892670184, "A90"),
+    /** The conventional counterpart of the  {@link SiBaseUnit#AMPERE ampere}. */
+    AMPERE(1.0000000892670184, "A90"),
 
-	/** The conventional counterpart of the  {@link SiDerivedUnit#COULOMB coulomb}. */
-	COULOMB(1.0000000892670184, "C90"),
+    /** The conventional counterpart of the  {@link SiDerivedUnit#COULOMB coulomb}. */
+    COULOMB(1.0000000892670184, "C90"),
 
-	/** The conventional counterpart of the  {@link SiDerivedUnit#FARAD farad}. */
-	FARAD(0.9999999825667936, "F90"),
+    /** The conventional counterpart of the  {@link SiDerivedUnit#FARAD farad}. */
+    FARAD(0.9999999825667936, "F90"),
 
-	/** The conventional counterpart of the  {@link SiDerivedUnit#HENRY henry}. */
-	HENRY(1.0000000174332067, "H90"),
+    /** The conventional counterpart of the  {@link SiDerivedUnit#HENRY henry}. */
+    HENRY(1.0000000174332067, "H90"),
 
-	/**
-	 * The conventional ohm is based on the
-	 * {@link PhysicsConstant#CONVENTIONAL_VALUE_OF_VON_KLITZING_CONSTANT
-	 * conventional value of the von Klitzing constant}, making use of the quantum
-	 * Hall effect.
-	 */
-	OHM(1.0000000174332067, "Ω90", "Ohm90", "ohm90"),
+    /**
+     * The conventional ohm is based on the
+     * {@link PhysicsConstant#CONVENTIONAL_VALUE_OF_VON_KLITZING_CONSTANT
+     * conventional value of the von Klitzing constant}, making use of the quantum
+     * Hall effect.
+     */
+    OHM(1.0000000174332067, "Ω90", "Ohm90", "ohm90"),
 
-	/**
-	 * The conventional volt is based on the
-	 * {@link PhysicsConstant#CONVENTIONAL_VALUE_OF_JOSEPHSON_CONSTANT conventional
-	 * value of the Josephson constant}, making use of the Josephson effect.
-	 */
-	VOLT(1.0000001067002267, "V90"),
+    /**
+     * The conventional volt is based on the
+     * {@link PhysicsConstant#CONVENTIONAL_VALUE_OF_JOSEPHSON_CONSTANT conventional
+     * value of the Josephson constant}, making use of the Josephson effect.
+     */
+    VOLT(1.0000001067002267, "V90"),
 
-	/** The conventional counterpart of the  {@link SiDerivedUnit#WATT watt}. */
-	WATT(1.0000001959672546, "W90");
+    /** The conventional counterpart of the  {@link SiDerivedUnit#WATT watt}. */
+    WATT(1.0000001959672546, "W90");
 
-	/** The symbols representing the conventional electrical unit. */
-	private final List<String> symbols;
+    /** The symbols representing the conventional electrical unit. */
+    private final List<String> symbols;
 
-	/** The SI base units to which the conventional electrical unit corresponds. */
-	private Map<Unit, Integer> baseUnits;
+    /** The SI base units to which the conventional electrical unit corresponds. */
+    private Map<Unit, Integer> baseUnits;
 
-	/** The factor to convert from the conventional electrical unit to the SI base units. */
-	private final double factor;
+    /** The factor to convert from the conventional electrical unit to the SI base units. */
+    private final double factor;
 
-	/**
-	 * Constructor for conventional electrical units.
-	 * 
-	 * @param factor  the conversion factor to base SI units
-	 * @param symbols the symbols representing the conventional electrical unit
-	 */
-	private ConventionalElectricalUnit(double factor, String... symbols) {
-		this.factor = factor;
-		this.symbols = List.of(symbols);
-	}
+    /**
+     * Constructor for conventional electrical units.
+     * 
+     * @param factor  the conversion factor to base SI units
+     * @param symbols the symbols representing the conventional electrical unit
+     */
+    private ConventionalElectricalUnit(double factor, String... symbols) {
+        this.factor = factor;
+        this.symbols = List.of(symbols);
+    }
 
-	@Override
-	public Map<Unit, Integer> baseUnits() {
-		if (baseUnits == null) {
-			baseUnits = switch (this) {
-				case AMPERE -> Map.of(SiBaseUnit.SECOND, -1);
-				case COULOMB -> Map.of(SiBaseUnit.SECOND, 1, SiBaseUnit.AMPERE, 1);
-				case FARAD -> Map.of(SiBaseUnit.KILOGRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 4, SiBaseUnit.AMPERE, 2);
-				case HENRY -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -2);
-				case OHM -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -2);
-				case VOLT -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -1);
-				case WATT -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3);
-			};
-		}
-		return baseUnits;
-	}
+    @Override
+    public Map<Unit, Integer> baseUnits() {
+        if (baseUnits == null) {
+            baseUnits = switch (this) {
+                case AMPERE  -> Map.of(SiBaseUnit.SECOND, -1);
+                case COULOMB -> Map.of(SiBaseUnit.SECOND, 1, SiBaseUnit.AMPERE, 1);
+                case FARAD   -> Map.of(SiBaseUnit.KILOGRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 4, SiBaseUnit.AMPERE, 2);
+                case HENRY   -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -2);
+                case OHM     -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -2);
+                case VOLT    -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -1);
+                case WATT    -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3);
+            };
+        }
+        return baseUnits;
+    }
 
-	@Override public double factor(String symbol) { return factor; }
-	@Override public List<String> symbols() { return symbols; }
-	@Override public boolean prefixAllowed(String symbol) { return false; }
-	@Override public boolean isConversionLinear() { return true; }
-	@Override public double convertToBaseUnits(double value) { return factor * value; }
-	@Override public double convertFromBaseUnits(double value) { return value / factor; }
-	@Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
-	@Override public boolean isBasic() { return false; }
+    @Override public double factor(String symbol) { return factor; }
+    @Override public List<String> symbols() { return symbols; }
+    @Override public boolean prefixAllowed(String symbol) { return false; }
+    @Override public boolean isConversionLinear() { return true; }
+    @Override public double convertToBaseUnits(double value) { return factor * value; }
+    @Override public double convertFromBaseUnits(double value) { return value / factor; }
+    @Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
+    @Override public boolean isBasic() { return false; }
 }

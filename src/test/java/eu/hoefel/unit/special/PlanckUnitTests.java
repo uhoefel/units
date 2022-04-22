@@ -15,20 +15,21 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Planck units")
 class PlanckUnitTests {
 
-	@DisplayName("Testing Planck units <-> SI conversions")
-	@ParameterizedTest
-	@EnumSource(PlanckUnit.class)
-	void testPlanckUnitConversions(PlanckUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing Planck units <-> SI conversions")
+    @ParameterizedTest
+    @EnumSource(PlanckUnit.class)
+    void testPlanckUnitConversions(PlanckUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing Planck units -> SI base units")
-	@ParameterizedTest
-	@EnumSource(PlanckUnit.class)
-	void testPlanckUnitBaseUnits(PlanckUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing Planck units -> SI base units")
+    @ParameterizedTest
+    @EnumSource(PlanckUnit.class)
+    void testPlanckUnitBaseUnits(PlanckUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }

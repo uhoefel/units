@@ -15,20 +15,21 @@ import eu.hoefel.unit.Units;
  * 
  * @author Udo Hoefel
  */
+@SuppressWarnings("javadoc")
 @DisplayName("Base binary units")
 class BinaryUnitTests {
 
-	@DisplayName("Testing binary base units <-> Binary conversions")
-	@ParameterizedTest
-	@EnumSource(BinaryUnit.class)
-	void testBinaryBaseUnitConversions(BinaryUnit unit) {
-	    assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
-	}
+    @DisplayName("Testing binary base units <-> Binary conversions")
+    @ParameterizedTest
+    @EnumSource(BinaryUnit.class)
+    void testBinaryBaseUnitConversions(BinaryUnit unit) {
+        assertEquals(1, unit.convertFromBaseUnits(unit.convertToBaseUnits(1)));
+    }
 
-	@DisplayName("Testing binary base units -> binary base units")
-	@ParameterizedTest
-	@EnumSource(BinaryUnit.class)
-	void testBinaryBaseUnitBaseUnits(BinaryUnit unit) {
-		assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
-	}
+    @DisplayName("Testing binary base units -> binary base units")
+    @ParameterizedTest
+    @EnumSource(BinaryUnit.class)
+    void testBinaryBaseUnitBaseUnits(BinaryUnit unit) {
+        assertTrue(Units.convertible(unit, Unit.of(Units.toSymbol(unit.baseUnits()))));
+    }
 }
