@@ -1144,6 +1144,11 @@ public final class Units {
      * origin units are convertible to the target units, and that the specified
      * amount of the origin units corresponds to the same amount of the target
      * units).
+     * <p>
+     * A typical usecase would be to check if a user defined unit is for the given
+     * {@code value} equivalent to some standard unit. This method is usually
+     * <em>not</em> the correct approach to check two constants for equivalency, as
+     * one would want to not only check the units at one of their values.
      * 
      * @param value      the value which will be used to test for equivalence
      * @param origin     the original units, not null
@@ -1151,27 +1156,32 @@ public final class Units {
      * @param extraUnits the additional units to use for the conversion, not null
      * @return true if the units are equivalent
      */
-    public static final boolean equivalent(double value, String origin, String target, Unit[]... extraUnits) {
+    static final boolean equivalent(double value, String origin, String target, Unit[]... extraUnits) {
         Objects.requireNonNull(origin);
         Objects.requireNonNull(target);
         Objects.requireNonNull(extraUnits);
 
         Unit o = Unit.of(origin, extraUnits);
         Unit t = Unit.of(target, extraUnits);
-        return equivalent(value, o, t) && value == convert(value, o, t);
+        return equivalent(value, o, t);
     }
 
     /**
      * Checks whether the origin and target unit are equivalent (that is, the origin
      * unit is convertible to the target unit, and that 1 amount of the origin unit
      * corresponds to 1 amount of the target unit).
+     * <p>
+     * A typical usecase would be to check if a user defined unit is for the given
+     * {@code value} equivalent to some standard unit. This method is usually
+     * <em>not</em> the correct approach to check two constants for equivalency, as
+     * one would want to not only check the units at one of their values.
      * 
      * @param value  the value which will be used to test for equivalence
      * @param origin the original unit, not null
      * @param target the target unit, not null
      * @return true if the units are equivalent
      */
-    public static final boolean equivalent(double value, Unit origin, Unit target) {
+    static final boolean equivalent(double value, Unit origin, Unit target) {
         Objects.requireNonNull(origin);
         Objects.requireNonNull(target);
 

@@ -5,7 +5,7 @@
 
     <groupId>eu.hoefel</groupId>
     <artifactId>units</artifactId>
-    <version>2.2.0</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <name>units</name>

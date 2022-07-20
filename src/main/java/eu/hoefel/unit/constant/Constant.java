@@ -222,8 +222,9 @@ public interface Constant extends Texable {
         Objects.requireNonNull(constant);
 
         return Units.convertible(unit(), constant.unit()) 
-                && Units.equivalent(value(), unit(), constant.unit())
-                && Units.equivalent(uncertainty(), unit(), constant.unit());
+                && Double.compare(value(), Units.convert(constant.value(), constant.unit(), unit())) == 0
+                && Double.compare(uncertainty(), Units.convert(constant.uncertainty(), constant.unit(), unit())) == 0;
+
     }
 
     /**

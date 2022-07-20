@@ -55,13 +55,7 @@ Some of the supported features include:
   ```
   
   will return `1e-3`.
-- Allows to check for equivalence, e.g.
-
-  ```java
-  Units.equivalent(1, "s", "min");
-  ```
-  
-  will return false, as `1min` is not the same as `1s`. On the other hand, checking for convertibility
+- Allows to check for convertibility
   
   ```java
   Units.convertible("s", "min");
@@ -103,10 +97,10 @@ The artifact can be found at maven central:
 <dependency>
     <groupId>eu.hoefel</groupId>
     <artifactId>units</artifactId>
-    <version>2.1.0</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 
 Requirements
 ============
-Units is designed to work with Java 16+.
+Units is designed to work with Java 17+.
