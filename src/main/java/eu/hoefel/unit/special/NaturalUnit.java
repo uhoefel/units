@@ -34,16 +34,16 @@ public enum NaturalUnit implements Unit {
      * The natural unit of the action is determined by the reduced
      * {@link PhysicsConstant#PLANCK_CONSTANT Planck constant}.
      */
-    OF_ACTION(PhysicsConstant.PLANCK_CONSTANT.value() / (2 * Math.PI), "hbar", "ℏ"),
+    OF_ACTION(1e-3 * PhysicsConstant.PLANCK_CONSTANT.value() / (2 * Math.PI), "hbar", "ℏ"),
 
     /**
      * The natural unit of the mass is determined by the
      * {@link PhysicsConstant#ELECTRON_MASS electron mass}.
      */
-    OF_MASS(PhysicsConstant.ELECTRON_MASS.value(), "me", "m_e"),
+    OF_MASS(1e-3 * PhysicsConstant.ELECTRON_MASS.value(), "me", "m_e"),
 
     /** The natural unit of the energy is determined by the electron rest energy. */
-    OF_ENERGY(PhysicsConstant.ELECTRON_MASS.mul(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM.pow(2)).value(), "mec^2",
+    OF_ENERGY(1e-3 * PhysicsConstant.ELECTRON_MASS.mul(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM.pow(2)).value(), "mec^2",
             "m_ec^2", "mec0^2", "m_ec0^2"),
 
     /**
@@ -51,7 +51,7 @@ public enum NaturalUnit implements Unit {
      * {@link PhysicsConstant#ELECTRON_MASS electron mass} multiplied by the
      * {@link PhysicsConstant#SPEED_OF_LIGHT_IN_VACUUM speed of light in vacuum}.
      */
-    OF_MOMENTUM(PhysicsConstant.ELECTRON_MASS.mul(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM).value(), "mec", "m_ec",
+    OF_MOMENTUM(1e-3 * PhysicsConstant.ELECTRON_MASS.mul(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM).value(), "mec", "m_ec",
             "mec0", "m_ec0"),
 
     /**
@@ -93,11 +93,11 @@ public enum NaturalUnit implements Unit {
     public Map<Unit, Integer> baseUnits() {
         if (baseUnits == null) {
             baseUnits = switch (this) {
-                case OF_ACTION   -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -1);
-                case OF_ENERGY   -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
+                case OF_ACTION   -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -1);
+                case OF_ENERGY   -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
                 case OF_LENGTH   -> Map.of(SiBaseUnit.METER, 1);
-                case OF_MASS     -> Map.of(SiBaseUnit.KILOGRAM, 1);
-                case OF_MOMENTUM -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -1);
+                case OF_MASS     -> Map.of(SiBaseUnit.GRAM, 1);
+                case OF_MOMENTUM -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -1);
                 case OF_TIME     -> Map.of(SiBaseUnit.SECOND, 1);
                 case OF_VELOCITY -> Map.of(SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -1);
             };
@@ -105,7 +105,7 @@ public enum NaturalUnit implements Unit {
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return false; }
     @Override public boolean isConversionLinear() { return true; }

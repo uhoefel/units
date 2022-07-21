@@ -97,14 +97,14 @@ public enum RomanUnit implements Unit {
      * The uncia (for weight) corresponds to one twelfth of a {@link #LIBRA}. The
      * {@link eu.hoefel.unit.imperial.ImperialUnit#OUNCE} originated from it.
      */
-    UNCIA_WEIGHT(ROMAN_LIBRA / 12, "uncia-(weight)"),
+    UNCIA_WEIGHT(1e3 * ROMAN_LIBRA / 12, "uncia-(weight)"),
 
     /**
      * The libra corresponds to roughly 0.325
      * {@link eu.hoefel.unit.si.SiBaseUnit#KILOGRAM kg}. The
      * {@link eu.hoefel.unit.imperial.ImperialUnit#POUND} originated from it.
      */
-    LIBRA(ROMAN_LIBRA, "libra"),
+    LIBRA(1e3 * ROMAN_LIBRA, "libra"),
 //    MINA(4 * ROMAN_LIBRA / 3, "mina")
     ;
 
@@ -132,7 +132,7 @@ public enum RomanUnit implements Unit {
     public Map<Unit, Integer> baseUnits() {
         if (baseUnits == null) {
             baseUnits = switch (this) {
-                case UNCIA_WEIGHT, LIBRA -> Map.of(SiBaseUnit.KILOGRAM, 1);
+                case UNCIA_WEIGHT, LIBRA -> Map.of(SiBaseUnit.GRAM, 1);
                 case UNCIA -> Map.of(SiBaseUnit.METER, 1);
             };
         }
@@ -163,7 +163,7 @@ public enum RomanUnit implements Unit {
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return false; }
     @Override public boolean isConversionLinear() { return true; }

@@ -61,7 +61,7 @@ public final class Units {
         @Override public boolean prefixAllowed(String symbol) { return false; }
         @Override public boolean isBasic() { return true; }
         @Override public Map<Unit, Integer> baseUnits() { return Map.of(); }
-        @Override public double factor(String symbol) { return 1; }
+        @Override public double factor() { return 1; }
         @Override public double convertToBaseUnits(double value) { return value; }
         @Override public double convertFromBaseUnits(double value) { return value; }
         @Override public boolean isConversionLinear() { return true; }
@@ -69,8 +69,8 @@ public final class Units {
         
         @Override
         public final String toString() {
-            return "EmptyUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-                    + isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits() + "]";
+            return "EmptyUnit[symbols=" + symbols() + ", isBasic=" + isBasic() + ", isLinear="
+                    + isConversionLinear() + ", baseUnits=" + baseUnits() + "]";
         }
 
         @Override
@@ -111,7 +111,9 @@ public final class Units {
      * This record holds the information of the units and the accompanying extra
      * units to be used for parsing. This is useful for maps, in which the units
      * should serve as the key, but the units available for parsing might change the
-     * meaning of the unit, i.e., it is used for {@link Units#specialUnits}.
+     * meaning of the unit, i.e., it can be useful for composite units, though it
+     * should not be strictly necessary. Consequently, this record may be optimized
+     * away in the future.
      * 
      * @param units      the units, e.g. "kg^2 m s^-1"
      * @param extraUnits the additional units to use for parsing the units
@@ -315,7 +317,7 @@ public final class Units {
             @Override public boolean prefixAllowed(String symbol) { return false; }
             @Override public boolean isBasic() { return true; }
             @Override public Map<Unit, Integer> baseUnits() { return Map.of(); } // Note here the empty base units
-            @Override public double factor(String symbol) { return 1; }
+            @Override public double factor() { return 1; }
             @Override public double convertToBaseUnits(double value) { return value; }
             @Override public double convertFromBaseUnits(double value) { return value; }
             @Override public boolean isConversionLinear() { return true; }
@@ -323,8 +325,8 @@ public final class Units {
 
             @Override
             public String toString() {
-                return "UnknownUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-                        + isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits() + "]";
+                return "UnknownUnit[symbols=" + symbols() + ", isBasic=" + isBasic() + ", isLinear="
+                        + isConversionLinear() + ", baseUnits=" + baseUnits() + "]";
             }
 
             @Override
@@ -350,7 +352,7 @@ public final class Units {
             @Override public boolean prefixAllowed(String symbol) { return false; }
             @Override public boolean isBasic() { return true; }
             @Override public Map<Unit, Integer> baseUnits() { return Map.of(innerUnit, 1); } // Note here the reference to the "inner" unit
-            @Override public double factor(String symbol) { return 1; }
+            @Override public double factor() { return 1; }
             @Override public double convertToBaseUnits(double value) { return value; }
             @Override public double convertFromBaseUnits(double value) { return value; }
             @Override public boolean isConversionLinear() { return true; }
@@ -358,8 +360,8 @@ public final class Units {
 
             @Override
             public String toString() {
-                return "UnknownUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-                        + isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits() + "]";
+                return "UnknownUnit[symbols=" + symbols() + ", isBasic=" + isBasic() + ", isLinear="
+                        + isConversionLinear() + ", baseUnits=" + baseUnits() + "]";
             }
 
             @Override
@@ -625,9 +627,9 @@ public final class Units {
         if (extraUnits.length == 0) {
             units = DEFAULT_UNITS;
             prefixes = DEFAULT_PREFIXES;
-        } else if (extraUnits.length == 1 && extraUnits[0].length == 1) {
-            units = Set.of(extraUnits[0][0]);
-            prefixes = Set.copyOf(extraUnits[0][0].prefixes());
+//        } else if (extraUnits.length == 1 && extraUnits[0].length == 1) {
+//            units = Set.of(extraUnits[0][0]);
+//            prefixes = Set.copyOf(extraUnits[0][0].prefixes());
         } else {
             units = new LinkedHashSet<>();
             prefixes = new LinkedHashSet<>();
@@ -785,7 +787,7 @@ public final class Units {
 
         if (origin.baseUnits().equals(target.baseUnits())) {
             if (origin.isConversionLinear() && target.isConversionLinear()) {
-                return origin.factor(origin.symbols().get(0)) / target.factor(target.symbols().get(0));
+                return origin.factor() / target.factor();
             }
 
             throw new IllegalArgumentException(
@@ -854,13 +856,13 @@ public final class Units {
             // TODO
             // does this distinction really really save time here?
             // same for the operation on the target
-            value *= origin.factor(origin.symbols().get(0));
+            value *= origin.factor();
         } else {
             value = origin.convertToBaseUnits(value);
         }
 
         if (target.isConversionLinear()) {
-            value /= target.factor(target.symbols().get(0));
+            value /= target.factor();
         } else {
             value = target.convertFromBaseUnits(value);
         }
@@ -996,14 +998,14 @@ public final class Units {
                     if (exponent > 0) {
                         Unit u = effectiveTransformation.getKey();
                         if (u.isBasic() && u.isConversionLinear()) {
-                            v *= u.factor(symbolInfo.getKey());
+                            v *= u.factor();
                         } else if (!u.isBasic()) {
                             v = Math.pow(u.convertToBaseUnits(v), exponent);
                         }
                     } else if (exponent < 0) {
                         Unit u = effectiveTransformation.getKey();
                         if (u.isBasic() && u.isConversionLinear()) {
-                            v /= u.factor(symbolInfo.getKey());
+                            v /= u.factor();
                         } else if (!u.isBasic()) {
                             v = Math.pow(u.convertFromBaseUnits(v), Math.abs(exponent));
                         }
@@ -1115,10 +1117,10 @@ public final class Units {
                 baseUnitInfos.put(correspondingBase.getKey(), exponent + correspondingBase.getValue() * info.exponent());
                 if (!factorCalculated && info.unit().prefixAllowed(info.symbol())) {
                     factor *= Math.pow(info.prefix().factor(), info.exponent());
-                    factor *= Math.pow(info.unit().factor(info.symbol()), info.exponent());
+                    factor *= Math.pow(info.unit().factor(), info.exponent());
                     factorCalculated = true;
                 } else if (!factorCalculated) {
-                    factor *= Math.pow(info.unit().factor(info.symbol()), info.exponent());
+                    factor *= Math.pow(info.unit().factor(), info.exponent());
                     factorCalculated = true;
                 }
 
@@ -1350,7 +1352,8 @@ public final class Units {
      * @return true if there is a mismatch of the base units vs. the combined base
      *         units of the given reference units (raised to their exponents)
      */
-    private static boolean checkForBaseUnitMismatch(Map<Unit, Integer> baseUnits, Unit refUnit1, int exponent1, Unit refUnit2, int exponent2) {
+    private static boolean checkForBaseUnitMismatch(Map<Unit, Integer> baseUnits, Unit refUnit1, int exponent1,
+            Unit refUnit2, int exponent2) {
         // If the base units don't match, we can skip further calculations, i.e. return
         // true.
         // First we check only the keys from the base units.
@@ -1417,7 +1420,8 @@ public final class Units {
      * @return the (lexicographically) ordered names of units that match the given
      *         unit within the specified context
      */
-    public static final NavigableSet<String> inContext(String units, UnitContextMatch match, UnitContext context, Unit[]... extraUnits) {
+    public static final NavigableSet<String> inContext(String units, UnitContextMatch match, UnitContext context,
+            Unit[]... extraUnits) {
         Objects.requireNonNull(units);
         Objects.requireNonNull(match);
         Objects.requireNonNull(context);

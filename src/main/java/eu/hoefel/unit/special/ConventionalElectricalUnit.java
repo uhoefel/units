@@ -38,10 +38,10 @@ public enum ConventionalElectricalUnit implements Unit {
     COULOMB(1.0000000892670184, "C90"),
 
     /** The conventional counterpart of the  {@link SiDerivedUnit#FARAD farad}. */
-    FARAD(0.9999999825667936, "F90"),
+    FARAD(0.9999999825667936e-3, "F90"),
 
     /** The conventional counterpart of the  {@link SiDerivedUnit#HENRY henry}. */
-    HENRY(1.0000000174332067, "H90"),
+    HENRY(1.0000000174332067e3, "H90"),
 
     /**
      * The conventional ohm is based on the
@@ -49,17 +49,17 @@ public enum ConventionalElectricalUnit implements Unit {
      * conventional value of the von Klitzing constant}, making use of the quantum
      * Hall effect.
      */
-    OHM(1.0000000174332067, "Ω90", "Ohm90", "ohm90"),
+    OHM(1.0000000174332067e3, "Ω90", "Ohm90", "ohm90"),
 
     /**
      * The conventional volt is based on the
      * {@link PhysicsConstant#CONVENTIONAL_VALUE_OF_JOSEPHSON_CONSTANT conventional
      * value of the Josephson constant}, making use of the Josephson effect.
      */
-    VOLT(1.0000001067002267, "V90"),
+    VOLT(1.0000001067002267e3, "V90"),
 
     /** The conventional counterpart of the  {@link SiDerivedUnit#WATT watt}. */
-    WATT(1.0000001959672546, "W90");
+    WATT(1.0000001959672546e3, "W90");
 
     /** The symbols representing the conventional electrical unit. */
     private final List<String> symbols;
@@ -87,17 +87,17 @@ public enum ConventionalElectricalUnit implements Unit {
             baseUnits = switch (this) {
                 case AMPERE  -> Map.of(SiBaseUnit.SECOND, -1);
                 case COULOMB -> Map.of(SiBaseUnit.SECOND, 1, SiBaseUnit.AMPERE, 1);
-                case FARAD   -> Map.of(SiBaseUnit.KILOGRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 4, SiBaseUnit.AMPERE, 2);
-                case HENRY   -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -2);
-                case OHM     -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -2);
-                case VOLT    -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -1);
-                case WATT    -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3);
+                case FARAD   -> Map.of(SiBaseUnit.GRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 4, SiBaseUnit.AMPERE, 2);
+                case HENRY   -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -2);
+                case OHM     -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -2);
+                case VOLT    -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -1);
+                case WATT    -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3);
             };
         }
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return false; }
     @Override public boolean isConversionLinear() { return true; }

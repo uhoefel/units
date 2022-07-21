@@ -21,7 +21,7 @@ public enum FusionPlasmaUnit implements Unit {
     DENSITY(1e19, "n"),
 
     /** The unit for all kind of temperatures (keV). */
-    TEMPERATURE(SiPrefix.KILO.factor() * SiCommonUnit.ELECTRONVOLT.factor(SiCommonUnit.ELECTRONVOLT.symbols().get(0)), "keV"),
+    TEMPERATURE(SiPrefix.KILO.factor() * SiCommonUnit.ELECTRONVOLT.factor(), "keV"),
 
     /**
      * The unit (1e14) to be used for impurity densities. Impurity densities are in
@@ -37,10 +37,10 @@ public enum FusionPlasmaUnit implements Unit {
     CURRENT_DENSITY(1e6, "j"),
 
     /** The unit for the pressure (kPa). */
-    PRESSURE(1e3, "p"),
+    PRESSURE(1, "p"),
 
     /** The unit for the plasma energy (kJ). */
-    PLASMA_ENERGY(1e3, "E"),
+    PLASMA_ENERGY(1, "E"),
 
     /** The unit for wavelengths (nm). */
     WAVELENGTH(1e-9, "nm"),
@@ -79,8 +79,8 @@ public enum FusionPlasmaUnit implements Unit {
                 case CURRENT_DENSITY    -> Map.of(SiBaseUnit.AMPERE, 1, SiBaseUnit.METER, -2);
                 case DENSITY            -> Map.of(SiBaseUnit.METER, -3);
                 case IMPURITY_DENSITY   -> Map.of(SiBaseUnit.METER, -3);
-                case PLASMA_ENERGY      -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
-                case PRESSURE           -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, -1, SiBaseUnit.SECOND, -2);
+                case PLASMA_ENERGY      -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
+                case PRESSURE           -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, -1, SiBaseUnit.SECOND, -2);
                 case ROTATION_FREQUENCY -> Map.of(SiBaseUnit.SECOND, -1);
                 case ROTATION_VELOCITY  -> Map.of(SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -1);
                 case TEMPERATURE        -> SiCommonUnit.ELECTRONVOLT.baseUnits();
@@ -90,7 +90,7 @@ public enum FusionPlasmaUnit implements Unit {
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return false; }
     @Override public boolean isConversionLinear() { return true; }

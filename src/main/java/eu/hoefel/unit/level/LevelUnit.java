@@ -59,6 +59,7 @@ public enum LevelUnit implements Unit {
     /** Pattern for a logarithmic quantity with respect to some reference value and unit. */
     static final Pattern LOG_UNIT_WITH_REF = Pattern.compile("(log|ln)\\^{0,1}(\\d*)\\(re[\\h, ](\\d+\\.?\\d*)[\\h,\u202F](.*?)\\)\\^{0,1}(\\d*)");
 
+    /** The logger */
     private static final Logger logger = Logger.getLogger(LevelUnit.class.getName());
 
     /** The path where this project is hosted. */
@@ -97,7 +98,7 @@ public enum LevelUnit implements Unit {
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return true; }
     @Override public boolean isConversionLinear() { return true; }
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public Map<Unit, Integer> baseUnits() { return BASE_UNITS; }
     @Override public double convertToBaseUnits(double value) { return factor * value; }
     @Override public double convertFromBaseUnits(double value) { return value / factor; }
@@ -202,7 +203,7 @@ public enum LevelUnit implements Unit {
             @Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
             @Override public boolean prefixAllowed(String symbol) { return false; }
             @Override public boolean isBasic() { return false; }
-            @Override public double factor(String symbol) { return Double.NaN; }
+            @Override public double factor() { return Double.NaN; }
             @Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
             @Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
             @Override public boolean isConversionLinear() { return false; }

@@ -105,7 +105,7 @@ public enum SiCommonUnit implements Unit {
      * electronvolt with {@link PhysicsConstant#ELEMENTARY_CHARGE elementary
      * charge}.
      */
-    ELECTRONVOLT(1.602176634e-19, "eV"), // we ensure in the tests that the value matches the constant in PhysicsConstant, otherwise we get problems with the initialization
+    ELECTRONVOLT(1.602176634e-16, "eV"), // we ensure in the tests that the value matches the constant in PhysicsConstant, otherwise we get problems with the initialization
 
     /**
      * The dalton, also known as unified atomic mass unit (note that only Da is
@@ -114,7 +114,7 @@ public enum SiCommonUnit implements Unit {
      * mass. It is defined as 1/12th of the mass of an unbound carbon atom in its
      * ground state and at rest.
      */
-    DALTON(1.6605390666e-27, "Da"), // we ensure in the tests that the value matches the constant in PhysicsConstant, otherwise we get problems with the initialization
+    DALTON(1.6605390666e-24, "Da"), // we ensure in the tests that the value matches the constant in PhysicsConstant, otherwise we get problems with the initialization
 
     /**
      * The bar is a unit of pressure, which is not accepted by the International
@@ -123,7 +123,7 @@ public enum SiCommonUnit implements Unit {
      * {@link PhysicsConstant#STANDARD_STATE_PRESSURE}. The unit is named in honor
      * of Vilhelm Bjerknes, who worked in weather forecasting.
      */
-    BAR(1e5, "bar"); 
+    BAR(1e8, "bar"); 
 
     /** Units that should be loaded for the sake of convenience. */
     private static final Set<Unit> COMPATIBLE_UNITS;
@@ -156,13 +156,13 @@ public enum SiCommonUnit implements Unit {
                 case ANGSTROM -> baseUnits.put(unit, Map.of(SiBaseUnit.METER, 1));
                 case YEAR, DAY, HOUR, MINUTE -> baseUnits.put(unit, Map.of(SiBaseUnit.SECOND, 1));
                 case ARCDEGREE, ARCMINUTE, ARCSECOND -> baseUnits.put(unit, Map.of());
-                case DALTON -> baseUnits.put(unit, Map.of(SiBaseUnit.KILOGRAM, 1));
-                case ELECTRONVOLT -> baseUnits.put(unit, Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2));
+                case DALTON -> baseUnits.put(unit, Map.of(SiBaseUnit.GRAM, 1));
+                case ELECTRONVOLT -> baseUnits.put(unit, Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2));
                 case HECTARE -> baseUnits.put(unit, Map.of(SiBaseUnit.METER, 2));
                 case LITER -> baseUnits.put(unit, Map.of(SiBaseUnit.METER, 3));
                 case PARSEC, LIGHTYEAR, ASTRONOMICAL_UNIT -> baseUnits.put(unit, Map.of(SiBaseUnit.METER, 1));
-                case TONNE -> baseUnits.put(unit, Map.of(SiBaseUnit.KILOGRAM, 1));
-                case BAR -> baseUnits.put(unit, Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, -1, SiBaseUnit.SECOND, -2));
+                case TONNE -> baseUnits.put(unit, Map.of(SiBaseUnit.GRAM, 1));
+                case BAR -> baseUnits.put(unit, Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, -1, SiBaseUnit.SECOND, -2));
             };
         }
     }
@@ -178,7 +178,7 @@ public enum SiCommonUnit implements Unit {
         this.symbols = List.of(symbols);
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public Map<Unit, Integer> baseUnits() { return baseUnits.get(this); }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return this != DAY; }

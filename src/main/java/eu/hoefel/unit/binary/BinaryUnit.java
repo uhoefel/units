@@ -67,7 +67,7 @@ public enum BinaryUnit implements Unit {
         this.prefixes = Set.copyOf(prefixSet);
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public Map<Unit, Integer> baseUnits() { return BASE_UNITS; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return true; }

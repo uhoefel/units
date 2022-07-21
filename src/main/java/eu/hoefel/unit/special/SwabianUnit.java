@@ -79,7 +79,7 @@ public enum SwabianUnit implements Unit {
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return false; }
     @Override public boolean isConversionLinear() { return true; }

@@ -273,33 +273,33 @@ public enum UsCustomaryUnit implements Unit {
      * A grain corresponds to the idealized weight of a single grain of barley. It
      * is still used, e.g., to measure bullet and arrow weight.
      */
-    GRAIN(0.00006479891 /* 1/7000 lb */, "gr"),
+    GRAIN(0.00006479891e3 /* 1/7000 lb */, "gr"),
 
     /**
      * The pennyweight is a measure of weight and corresponds to a twentieth of a
      * {@link #TROY_OUNCE troy ounce}.
      */
-    PENNYWEIGHT(0.00155517384 /* 24 gr */, "dwt"),
+    PENNYWEIGHT(0.00155517384e3 /* 24 gr */, "dwt"),
 
     /**
      * The troy ounce is a measure of weight particularly used in the precious metal
      * industry. It corresponds to 20 {@link #PENNYWEIGHT pennyweights}.
      */
-    TROY_OUNCE(0.0311034768 /* 20 dwt */, "oz.t."),
+    TROY_OUNCE(0.0311034768e3 /* 20 dwt */, "oz.t."),
 
     /**
      * The troy pound is a measure of weight particularly used in the precious metal
      * industry. It corresponds to 12 {@link #TROY_OUNCE troy ounces} and is roughly
      * 18% lighter than the {@link #POUND}.
      */
-    TROY_POUND(0.3732417216 /* 12 oz.t. */, "lb.t."),
+    TROY_POUND(0.3732417216e3 /* 12 oz.t. */, "lb.t."),
 
     /**
      * A dram (in the avoirdupois version) corresponds to a sixteenth of an
      * (avoirdupois) {@link #OUNCE ounce}. In ancient Greece a drachm used to be a
      * coin, as well as a weight measure, from which the name dram stems.
      */
-    DRAM(0.0017718451953125 /* 27 11/32 gr */, "dr"),
+    DRAM(0.0017718451953125e3 /* 27 11/32 gr */, "dr"),
 
     /**
      * An (avoirdupois) ounce corresponds to a sixteenth of an (avoirdupois)
@@ -307,27 +307,27 @@ public enum UsCustomaryUnit implements Unit {
      * the United States. Its name stems from the Roman
      * {@link RomanUnit#UNCIA_WEIGHT uncia}.
      */
-    OUNCE(0.028349523125 /* 16 dr */, "oz"),
+    OUNCE(0.028349523125e3 /* 16 dr */, "oz"),
 
     /**
      * A pound consists of 16 {@link #OUNCE ounces}. It is still in common use in
      * the United States. The unit descended from the Roman {@link RomanUnit#LIBRA
      * libra}.
      */
-    POUND(0.45359237 /* 7000 gr */, "lb"),
+    POUND(0.45359237e3 /* 7000 gr */, "lb"),
 
     /**
      * A (short) hundredweight, also known as centa, corresponds to 100
      * {@link #POUND pound}.
      */
-    HUNDREDWEIGHT(45.359237 /* 100 lb */, "cwt"),
+    HUNDREDWEIGHT(45.359237e3 /* 100 lb */, "cwt"),
 
     /**
      * A (short) ton corresponds to 20 {@link #HUNDREDWEIGHT hundredweight}. The
      * unit is widely used in the United States (typically without the "short"
      * prefix). It should not be confused with a {@link SiCommonUnit#TONNE tonne}.
      */
-    TON(907.18474 /* 20 cwt */, "t");
+    TON(907.18474e3 /* 20 cwt */, "t");
 
 
     /** The symbols representing the imperial unit. */
@@ -365,15 +365,15 @@ public enum UsCustomaryUnit implements Unit {
                 case DRY_PINT, DRY_QUART, DRY_GALLON, PECK, BUSHEL,
                         DRY_BARREL -> Map.of(SiBaseUnit.METER, 3);
                 case GRAIN, PENNYWEIGHT, TROY_OUNCE, TROY_POUND, DRAM, OUNCE,
-                        POUND, HUNDREDWEIGHT, TON -> Map.of(SiBaseUnit.KILOGRAM, 1);
+                        POUND, HUNDREDWEIGHT, TON -> Map.of(SiBaseUnit.GRAM, 1);
             };
         }
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
-    @Override public double convertToBaseUnits(double value) { return factor(symbols().get(0)) * value; }
-    @Override public double convertFromBaseUnits(double value) { return value / factor(symbols().get(0)); }
+    @Override public double factor() { return factor; }
+    @Override public double convertToBaseUnits(double value) { return factor * value; }
+    @Override public double convertFromBaseUnits(double value) { return value / factor; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return false; }
     @Override public boolean isConversionLinear() { return true; }

@@ -182,61 +182,61 @@ public enum ImperialUnit implements Unit {
      * A grain corresponds to the idealized weight of a single grain of barley. It
      * is still used, e.g., to measure bullet and arrow weight.
      */
-    GRAIN(6.479891e-5, "gr"),
+    GRAIN(6.479891e-2, "gr"),
 
     /**
      * A dram (in the avoirdupois version) corresponds to a sixteenth of an
      * (avoirdupois) {@link #OUNCE ounce}. In ancient Greece a drachm used to be a
      * coin, as well as a weight measure, from which the name dram stems.
      */
-    DRAM(0.0017718451953125, "dr"),
+    DRAM(1.7718451953125, "dr"),
 
     /**
      * An (avoirdupois) ounce corresponds to a sixteenth of an (avoirdupois)
      * {@link #POUND pound}. Nowadays, it is used only informally in the United
      * Kingdom. Its name stems from the Roman {@link RomanUnit#UNCIA_WEIGHT uncia}.
      */
-    OUNCE(0.028349523125, "oz"),
+    OUNCE(28.349523125, "oz"),
 
     /**
      * A pound consists of 16 {@link #OUNCE ounces}. It is still in common use in
      * the United Kingdom. The unit descended from the Roman {@link RomanUnit#LIBRA
      * libra}.
      */
-    POUND(0.45359237, "lb"),
+    POUND(453.59237, "lb"),
 
     /**
      * A stone corresponds to 14 {@link #POUND pounds}. It is still in customary use
      * for body weights in Britain and Ireland, but no longer used commerically.
      */
-    STONE(6.35029318, "st"),
+    STONE(6350.29318, "st"),
 
     /**
      * A quarter corresponds to 28 {@link #POUND pounds} or 2 {@link #STONE stone}.
      * Its name refers to it being a quarter of a {@link #HUNDREDWEIGHT
      * hundredweight}.
      */
-    QUARTER(12.70058636, "qr", "qtr"),
+    QUARTER(12700.58636, "qr", "qtr"),
 
     /**
      * A (long) hundredweight, also known as centum weight or quintal, corresponds
      * to 8 {@link #STONE stone} or a twentieth of a {@link #TON ton}.
      */
-    HUNDREDWEIGHT(50.80234544, "cwt"),
+    HUNDREDWEIGHT(50802.34544, "cwt"),
 
     /**
      * A (long) ton corresponds to 20 {@link #HUNDREDWEIGHT hundredweight}. The unit
      * is still used in the United states to measure, e.g., the displacement of
      * ships. It should not be confused with a {@link SiCommonUnit#TONNE tonne}.
      */
-    TON(1016.0469088, "tn.l."),
+    TON(1016046.9088, "tn.l."),
 
     /**
      * A slug is defined as the mass that is accelerated by 1 {@link #FOOT
      * ft}/{@link SiBaseUnit#SECOND s}<sup>2</sup> when a force of one {@link #POUND
      * pound} is exerted on it.
      */
-    SLUG(14.59390294, "slug");
+    SLUG(14593.90294, "slug");
 
     /** The symbols representing the imperial unit. */
     private final List<String> symbols;
@@ -267,14 +267,14 @@ public enum ImperialUnit implements Unit {
                 case LINK, ROD -> Map.of(SiBaseUnit.METER, 1);
                 case PERCH, ROOD, ACRE -> Map.of(SiBaseUnit.METER, 2);
                 case FLUID_OUNCE, GILL, PINT, QUART, GALLON, BARREL -> Map.of(SiBaseUnit.METER, 3);
-                case GRAIN, DRAM, OUNCE, POUND, STONE, QUARTER, HUNDREDWEIGHT, TON -> Map.of(SiBaseUnit.KILOGRAM, 1);
-                case SLUG -> Map.of(SiBaseUnit.KILOGRAM, 1);
+                case GRAIN, DRAM, OUNCE, POUND, STONE, QUARTER, HUNDREDWEIGHT, TON -> Map.of(SiBaseUnit.GRAM, 1);
+                case SLUG -> Map.of(SiBaseUnit.GRAM, 1);
             };
         }
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public double convertToBaseUnits(double value) { return factor * value; }
     @Override public double convertFromBaseUnits(double value) { return value / factor; }
     @Override public List<String> symbols() { return symbols; }

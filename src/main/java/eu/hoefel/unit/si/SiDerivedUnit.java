@@ -229,25 +229,25 @@ public enum SiDerivedUnit implements Unit {
                 case BECQUEREL -> Map.of(SiBaseUnit.SECOND, -1);
                 case COULOMB -> Map.of(SiBaseUnit.SECOND, 1, SiBaseUnit.AMPERE, 1);
                 case DEGREE_CELSIUS -> Map.of(SiBaseUnit.KELVIN, 1);
-                case FARAD -> Map.of(SiBaseUnit.KILOGRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 4, SiBaseUnit.AMPERE, 2);
+                case FARAD -> Map.of(SiBaseUnit.GRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 4, SiBaseUnit.AMPERE, 2);
                 case GRAY -> Map.of(SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
-                case HENRY -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -2);
+                case HENRY -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -2);
                 case HERTZ -> Map.of(SiBaseUnit.SECOND, -1);
-                case JOULE -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
+                case JOULE -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
                 case KATAL -> Map.of(SiBaseUnit.MOLE, 1, SiBaseUnit.SECOND, -1);
                 case LUMEN -> Map.of(SiBaseUnit.CANDELA, 1);
                 case LUX -> Map.of(SiBaseUnit.METER, -2, SiBaseUnit.CANDELA, 1);
-                case NEWTON -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -2);
-                case OHM -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -2);
-                case PASCAL -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, -1, SiBaseUnit.SECOND, -2);
+                case NEWTON -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -2);
+                case OHM -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -2);
+                case PASCAL -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, -1, SiBaseUnit.SECOND, -2);
                 case RADIAN -> Map.of();
-                case SIEMENS -> Map.of(SiBaseUnit.KILOGRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 3, SiBaseUnit.AMPERE, 2);
+                case SIEMENS -> Map.of(SiBaseUnit.GRAM, -1, SiBaseUnit.METER, -2, SiBaseUnit.SECOND, 3, SiBaseUnit.AMPERE, 2);
                 case SIEVERT -> Map.of(SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
                 case STERADIAN -> Map.of();
-                case TESLA -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -1);
-                case VOLT -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -1);
-                case WATT -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3);
-                case WEBER -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -1);
+                case TESLA -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -1);
+                case VOLT -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3, SiBaseUnit.AMPERE, -1);
+                case WATT -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -3);
+                case WEBER -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2, SiBaseUnit.AMPERE, -1);
             };
         }
         return baseUnits;
@@ -257,7 +257,9 @@ public enum SiDerivedUnit implements Unit {
     public double convertToBaseUnits(double value) {
         return switch (this) {
             case DEGREE_CELSIUS -> value + 273.15;
-            default -> value; // the factor for all units except degree celsius is 1
+            case FARAD, SIEMENS -> 1e-3*value;
+            case HENRY, JOULE, NEWTON, OHM, PASCAL, TESLA, VOLT, WATT, WEBER -> 1e3*value;
+            default -> value;
         };
     }
 
@@ -265,14 +267,26 @@ public enum SiDerivedUnit implements Unit {
     public double convertFromBaseUnits(double value) {
         return switch (this) {
             case DEGREE_CELSIUS -> value - 273.15;
-            default -> value; // the factor for all units except degree celsius is 1
+            case FARAD, SIEMENS -> 1e3*value;
+            case HENRY, JOULE, NEWTON, OHM, PASCAL, TESLA, VOLT, WATT, WEBER -> 1e-3*value;
+            default -> value;
+        };
+    }
+
+    @Override
+    public double factor() {
+        return switch (this) {
+            case DEGREE_CELSIUS -> Double.NaN;
+            case FARAD, SIEMENS -> 1e-3;
+            case HENRY, JOULE, NEWTON, OHM, PASCAL, TESLA, VOLT, WATT, WEBER -> 1e3;
+            default -> 1;
         };
     }
 
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return true; }
     @Override public boolean isConversionLinear() { return this != DEGREE_CELSIUS; }
-    @Override public double factor(String symbol) { return this == DEGREE_CELSIUS ? Double.NaN : 1; }
+    
     @Override public Set<UnitPrefix> prefixes() { return DEFAULT_PREFIXES; }
     @Override public boolean isBasic() { return false; }
     @Override public Set<Unit> compatibleUnits() { return COMPATIBLE_UNITS; }

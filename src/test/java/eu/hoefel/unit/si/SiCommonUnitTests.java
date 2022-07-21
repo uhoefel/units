@@ -48,12 +48,12 @@ class SiCommonUnitTests {
     @DisplayName("Testing value of electronvolt <-> elementary charge")
     @Test
     void testElectronvoltValue() {
-        assertEquals(PhysicsConstant.ELEMENTARY_CHARGE.value(), SiCommonUnit.ELECTRONVOLT.factor(""));
+        assertEquals(PhysicsConstant.ELEMENTARY_CHARGE.value(), SiCommonUnit.ELECTRONVOLT.factor() / SiPrefix.KILO.factor());
     }
 
     @DisplayName("Testing value of dalton <-> unified atomic mass unit")
     @Test
     void testDaltonValue() {
-        assertEquals(PhysicsConstant.UNIFIED_ATOMIC_MASS_UNIT.value(), SiCommonUnit.DALTON.factor(""));
+        assertEquals(PhysicsConstant.UNIFIED_ATOMIC_MASS_UNIT.value(), SiCommonUnit.DALTON.factor() / SiPrefix.KILO.factor());
     }
 }

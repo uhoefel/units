@@ -29,7 +29,7 @@ public enum PlanckUnit implements Unit {
     PLANCK_LENGTH(PhysicsConstant.PLANCK_LENGTH.value(), "lp"),
 
     /** The Planck mass. See {@link PhysicsConstant#PLANCK_MASS Planck mass}. */
-    PLANCK_MASS(PhysicsConstant.PLANCK_MASS.value(), "mp"),
+    PLANCK_MASS(PhysicsConstant.PLANCK_MASS.inUnitsOf(SiBaseUnit.GRAM).value(), "mp"),
 
     /** The Planck time. See {@link PhysicsConstant#PLANCK_TIME Planck time}. */
     PLANCK_TIME(PhysicsConstant.PLANCK_TIME.value(), "tp"),
@@ -48,17 +48,17 @@ public enum PlanckUnit implements Unit {
     PLANCK_TEMPERATURE(PhysicsConstant.PLANCK_TEMPERATURE.value(), "Tp"),
 
     /** The Planck momentum. */
-    PLANCK_MOMENTUM(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM.mul(PhysicsConstant.PLANCK_MASS).value(), "pp"),
+    PLANCK_MOMENTUM(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM.mul(PhysicsConstant.PLANCK_MASS.inUnitsOf(SiBaseUnit.GRAM)).value(), "pp"),
 
     /** The Planck energy. This corresponds to the highest energy a photon could carry. */
-    PLANCK_ENERGY(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM.pow(2).mul(PhysicsConstant.PLANCK_MASS).value(), "Ep"),
+    PLANCK_ENERGY(PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM.pow(2).mul(PhysicsConstant.PLANCK_MASS.inUnitsOf(SiBaseUnit.GRAM)).value(), "Ep"),
 
     /**
      * The Planck force. Two bodies, separated by one {@link #PLANCK_LENGTH Planck
      * length} and each with a weight of one {@link #PLANCK_MASS Planck mass} exert
      * a gravitational force of one Planck force.
      */
-    PLANCK_FORCE(PLANCK_ENERGY.factor(PLANCK_ENERGY.symbols().get(0)) / PhysicsConstant.PLANCK_LENGTH.value(), "Fp"),
+    PLANCK_FORCE(PLANCK_ENERGY.factor() / PhysicsConstant.PLANCK_LENGTH.value(), "Fp"),
 
     /** The Planck density. */
     PLANCK_DENSITY(PhysicsConstant.PLANCK_MASS.div(PhysicsConstant.PLANCK_LENGTH.pow(3)).value(), "rhop", "ρp"),
@@ -97,11 +97,11 @@ public enum PlanckUnit implements Unit {
                 case PLANCK_ACCELERATION -> Map.of(SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -2);
                 case PLANCK_CHARGE       -> Map.of(SiBaseUnit.AMPERE, 1, SiBaseUnit.SECOND, 1);
                 case PLANCK_DENSITY      -> Map.of(SiBaseUnit.METER, -3);
-                case PLANCK_ENERGY       -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
-                case PLANCK_FORCE        -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -2);
+                case PLANCK_ENERGY       -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 2, SiBaseUnit.SECOND, -2);
+                case PLANCK_FORCE        -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -2);
                 case PLANCK_LENGTH       -> Map.of(SiBaseUnit.METER, 1);
-                case PLANCK_MASS         -> Map.of(SiBaseUnit.KILOGRAM, 1);
-                case PLANCK_MOMENTUM     -> Map.of(SiBaseUnit.KILOGRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -1);
+                case PLANCK_MASS         -> Map.of(SiBaseUnit.GRAM, 1);
+                case PLANCK_MOMENTUM     -> Map.of(SiBaseUnit.GRAM, 1, SiBaseUnit.METER, 1, SiBaseUnit.SECOND, -1);
                 case PLANCK_TEMPERATURE  -> Map.of(SiBaseUnit.KELVIN, 1);
                 case PLANCK_TIME         -> Map.of(SiBaseUnit.SECOND, 1);
             };
@@ -109,7 +109,7 @@ public enum PlanckUnit implements Unit {
         return baseUnits;
     }
 
-    @Override public double factor(String symbol) { return factor; }
+    @Override public double factor() { return factor; }
     @Override public List<String> symbols() { return symbols; }
     @Override public boolean prefixAllowed(String symbol) { return false; }
     @Override public boolean isConversionLinear() { return true; }

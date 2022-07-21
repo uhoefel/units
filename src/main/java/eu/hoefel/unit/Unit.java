@@ -63,17 +63,12 @@ public interface Unit {
     public boolean isConversionLinear();
 
     /**
-     * Gets the factor for the specified symbol to convert to base units. Note that
-     * not all conversions can be multiplicative (cf. {@link #isConversionLinear()}).
+     * Gets the factor to convert to base units. Note that not all conversions can
+     * be multiplicative (cf. {@link #isConversionLinear()}).
      * 
-     * @param symbol the symbol of which one wants the corresponding conversion
-     *               factor. Only relevant if different symbols correspond to
-     *               different factors, like e.g. for "kg" and "g" (which both are
-     *               recognized as representations of the 
-     *               {@link eu.hoefel.unit.si.SiBaseUnit#KILOGRAM kilogram}).
      * @return the conversion factor to base SI units
      */
-    public double factor(String symbol);
+    public double factor();
 
     /**
      * Gets the base {@link Unit units} and their exponents corresponding to this
@@ -172,7 +167,7 @@ public interface Unit {
      * units (i.e., it can handle units like "kg", "m^2", "s").
      * <p>
      * Note that the returned unit omits the lambdas used in
-     * {@link #prefixAllowed(String)}, {@link #factor(String)},
+     * {@link #prefixAllowed(String)}, {@link #factor()},
      * {@link #convertToBaseUnits(double)} and {@link #convertFromBaseUnits(double)}
      * from the equals and hashCode methods for practical reasons:
      * <p>
@@ -207,7 +202,8 @@ public interface Unit {
         for (Unit unitForParsing : unitsForParsing) {
             if (unitForParsing.parser() == Units.DEFAULT_PARSER) {
                 // this is the standard case
-                var map = Units.provideUnitInfoWithRegexesAlreadyApplied(units, unitsRaw, unitPower, Units::checkUnits, new Unit[] { unitForParsing });
+                var map = Units.provideUnitInfoWithRegexesAlreadyApplied(units, unitsRaw, unitPower, Units::checkUnits,
+                        new Unit[] { unitForParsing });
                 allUnitInfos.putAll(map);
             } else {
                 allUnitInfos.putAll(unitForParsing.parser().apply(units, allExtraUnits));
@@ -278,7 +274,7 @@ public interface Unit {
             @Override public Set<UnitPrefix> prefixes() { return prefixes; }
             @Override public boolean prefixAllowed(String symbol) { return isIdentityPrefix && unit.prefixAllowed(units); }
             @Override public boolean isBasic() { return isBasic; }
-            @Override public double factor(String symbol) { return conversionInfo.factor(); }
+            @Override public double factor() { return conversionInfo.factor(); }
             @Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
             @Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
             @Override public boolean isConversionLinear() { return conversionInfo.canUseFactor(); }
@@ -287,8 +283,8 @@ public interface Unit {
 
             @Override
             public String toString() {
-                return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic() + ", canUseFactor="
-                        + isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits=" + compatibleUnits + "]";
+                return "DynamicUnit[symbols=" + symbols() + ", isBasic=" + isBasic() + ", isLinear="
+                        + isConversionLinear() + ", baseUnits=" + baseUnits() + "]";
             }
 
             @Override
@@ -341,7 +337,7 @@ public interface Unit {
             @Override public Set<UnitPrefix> prefixes() { return Units.EMPTY_PREFIXES; }
             @Override public boolean prefixAllowed(String symbol) { return false; }
             @Override public boolean isBasic() { return false; }
-            @Override public double factor(String symbol) { return conversionInfo.factor(); }
+            @Override public double factor() { return conversionInfo.factor(); }
             @Override public double convertToBaseUnits(double value) { return toBase.applyAsDouble(value); }
             @Override public double convertFromBaseUnits(double value) { return fromBase.applyAsDouble(value); }
             @Override public boolean isConversionLinear() { return conversionInfo.canUseFactor(); }
@@ -350,9 +346,8 @@ public interface Unit {
 
             @Override
             public String toString() {
-                return "DynamicUnit[symbols=" + symbols() + ", prefixes=" + prefixes() + ", isBasic=" + isBasic()
-                        + ", canUseFactor=" + isConversionLinear() + ", baseUnits=" + baseUnits() + ", compatibleUnits="
-                        + compatibleUnits + "]";
+                return "DynamicUnit[symbols=" + symbols() + ", isBasic=" + isBasic() + ", isLinear="
+                        + isConversionLinear() + ", baseUnits=" + baseUnits() + "]";
             }
 
             @Override

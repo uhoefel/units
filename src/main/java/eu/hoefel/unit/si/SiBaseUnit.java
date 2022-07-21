@@ -8,6 +8,7 @@ import java.util.Set;
 
 import eu.hoefel.unit.Unit;
 import eu.hoefel.unit.UnitPrefix;
+import eu.hoefel.unit.Units;
 import eu.hoefel.unit.binary.BinaryPrefix;
 import eu.hoefel.unit.constant.physics.PhysicsConstant;
 
@@ -47,11 +48,32 @@ public enum SiBaseUnit implements Unit {
      * the {@link PhysicsConstant#HYPERFINE_TRANSITION_FREQUENCY_OF_CS_133 hyperfine
      * transition frequency of caesium 133}. Due to historic reasons, this unit (kg)
      * has a prefix (k for {@link SiPrefix#KILO kilo}) attached to it, in which case
-     * no further prefixes are allowed. It is however allowed to use the gram in
-     * combination with other prefixes if the prepended {@link SiPrefix#KILO k}
-     * of the kg is removed, so e.g. mg is fine.
+     * no further prefixes are allowed. It is however allowed to use the
+     * {@link #GRAM gram} in combination with other prefixes if the prepended
+     * {@link SiPrefix#KILO k} of the kg is removed, so e.g. mg is fine.
+     * <p>
+     * Note that other units that would intuitively refer to the kilogram as one of
+     * their base units should usually refer to the gram instead, with an
+     * appropriately adjusted conversion.
+     * 
+     * @see #GRAM
      */
-    KILOGRAM("kg", "g"),
+    KILOGRAM("kg"),
+
+    /**
+     * The gram is <em>not</em> a base SI unit; the corresponding SI base unit is
+     * the {@link #KILOGRAM kilogram}. However, this is only the case due to
+     * historic reasons, and it would complicate the internal code dramatically, so
+     * for practical purposes the gram is offered as a
+     * <q>pseudo</q> base unit here.
+     * <p>
+     * Note that other units that would intuitively refer to the kilogram as one of
+     * their base units should usually refer to the gram instead, with an
+     * appropriately adjusted conversion.
+     * 
+     * @see #KILOGRAM
+     */
+    GRAM("g"),
 
     /**
      * The ampere, symbol A, is the SI unit of electric current. It is defined by
@@ -102,9 +124,6 @@ public enum SiBaseUnit implements Unit {
     /** The symbols representing the base unit. */
     private final List<String> symbols;
 
-    /** The SI base units, so just itself for these units. */
-    private final Map<Unit, Integer> baseUnits = Map.of(this, 1);
-
     /** The default prefixes. */
     private static final Set<UnitPrefix> DEFAULT_PREFIXES;
 
@@ -118,20 +137,20 @@ public enum SiBaseUnit implements Unit {
     /**
      * Constructor for SI base units.
      * 
-     * @param symbols the symbols representing the base unit
+     * @param symbol the symbols representing the base unit
      */
-    private SiBaseUnit(String... symbols) {
-        this.symbols = List.of(symbols);
+    private SiBaseUnit(String symbol) {
+        this.symbols = List.of(symbol);
     }
 
-    @Override public double factor(String symbol) { return this != KILOGRAM || !"g".equals(symbol) ? 1 : 1e-3; }
-    @Override public Map<Unit, Integer> baseUnits() { return baseUnits; }
+    @Override public double factor() { return this == KILOGRAM ? 1e3 : 1; }
+    @Override public Map<Unit, Integer> baseUnits() { return this == KILOGRAM ? Map.of(GRAM, 1) : Map.of(this, 1); }
     @Override public List<String> symbols() { return symbols; }
-    @Override public boolean prefixAllowed(String symbol) { return this != KILOGRAM || !"kg".equals(symbol); }
+    @Override public boolean prefixAllowed(String symbol) { return this != KILOGRAM; }
     @Override public boolean isConversionLinear() { return true; }
-    @Override public double convertToBaseUnits(double value) { return value; }
-    @Override public double convertFromBaseUnits(double value) { return value; }
-    @Override public Set<UnitPrefix> prefixes() { return DEFAULT_PREFIXES; }
-    @Override public boolean isBasic() { return true; }
+    @Override public double convertToBaseUnits(double value) { return this == KILOGRAM ? 1e3*value : value; }
+    @Override public double convertFromBaseUnits(double value) { return this == KILOGRAM ? 1e-3*value : value; }
+    @Override public Set<UnitPrefix> prefixes() { return this == KILOGRAM ? Units.EMPTY_PREFIXES : DEFAULT_PREFIXES; }
+    @Override public boolean isBasic() { return this != KILOGRAM; }
     @Override public Set<Unit> compatibleUnits() { return Set.of(values()); }
 }

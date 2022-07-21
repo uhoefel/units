@@ -80,7 +80,8 @@ public interface Constant extends Texable {
         Objects.requireNonNull(units);
         Objects.requireNonNull(extraUnits);
 
-        return of(value, uncertainty, Unit.of(units, Units.flattenUnits(extraUnits)));
+        var unit = Unit.of(units, Units.flattenUnits(extraUnits));
+        return of(value, uncertainty, unit);
     }
 
     /**
@@ -341,7 +342,7 @@ public interface Constant extends Texable {
 
         double resultingValue = value() * value;
         double resultingUncertainty = resultingValue * Math.sqrt(Math.pow(uncertainty() / value(), 2) + Math.pow(uncertainty / value, 2));
-        Unit resultingUnit = Unit.of(unit().symbols().get(0) + Strings.NON_BREAKABLE_SPACE + unit.symbols().get(0));
+        Unit resultingUnit = Unit.of(unit().symbols().get(0) + Strings.NON_BREAKABLE_SPACE + unit.symbols().get(0), new Unit[] { unit(), unit });
         return of(resultingValue, resultingUncertainty, resultingUnit);
     }
 
