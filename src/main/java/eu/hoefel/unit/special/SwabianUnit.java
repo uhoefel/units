@@ -27,6 +27,15 @@ public enum SwabianUnit implements Unit {
      */
     MUGGASEGGELE(0.00022, "muggaseggele"),
 
+    /** A schuggerle isch, wenn du a Flasch ganz kurz überm Glas omdrehsch. */
+    SCHUGGERLE(0.00002, "schuggerle"),
+
+    /**
+     * A schugger isch a {@link #SCHUGGERLE schuggerle} wenn dui Flasch a bissele
+     * länger omdreht bleibt.
+     */
+    SCHUGGER(0.00004, "schugger"),
+
     /**
      * A fitsele isch bei ons definiert els a Volume mit'rer Kanteläng von fuffzich
      * {@link #MUGGASEGGELE muggaseggele}.
@@ -73,7 +82,7 @@ public enum SwabianUnit implements Unit {
         if (baseUnits == null) {
             baseUnits = switch (this) {
                 case MUGGASEGGELE -> Map.of(SiBaseUnit.METER, 1);
-                case FITSELE, BREGGELE, WENGELE, BROGGA, VIERTELE -> Map.of(SiBaseUnit.METER, 3);
+                case SCHUGGERLE, SCHUGGER, FITSELE, BREGGELE, WENGELE, BROGGA, VIERTELE -> Map.of(SiBaseUnit.METER, 3);
             };
         }
         return baseUnits;
