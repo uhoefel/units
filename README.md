@@ -75,7 +75,7 @@ The constants are implemented via a `Constant` interface that supports e.g.:
 - chaining commands, e.g.
 
   ```java
-  // constant with the distance travelled by light in vacuum in (2 ± 0) seconds as value
+  // constant with the distance traveled by light in vacuum in (2 ± 0) seconds as value
   PhysicsConstant.SPEED_OF_LIGHT_IN_VACUUM.mul(2, 0, SiBaseUnit.SECOND);
 
   // constant of the elementary charge per (electron) mass
@@ -97,7 +97,7 @@ The artifact can be found at maven central:
 <dependency>
     <groupId>eu.hoefel</groupId>
     <artifactId>units</artifactId>
-    <version>4.0.0</version>
+    <version>4.1.0</version>
 </dependency>
 ```
 

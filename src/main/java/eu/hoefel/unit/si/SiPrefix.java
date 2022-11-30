@@ -13,6 +13,22 @@ import eu.hoefel.unit.UnitPrefix;
 public enum SiPrefix implements UnitPrefix {
 
     /**
+     * Quecto is the decimal unit prefix in the metric system that corresponds to one
+     * nonillionth (10<sup>-30</sup>). It was added in
+     * <a href="https://www.bipm.org/en/cgpm-2022/resolution-3#page=">2022</a> to
+     * the SI system.
+     */
+    QUECTO(1e-30, "q"),
+
+    /**
+     * Ronto is the decimal unit prefix in the metric system that corresponds to one
+     * octillionth (10<sup>-27</sup>). It was added in
+     * <a href="https://www.bipm.org/en/cgpm-2022/resolution-3#page=">2022</a> to
+     * the SI system.
+     */
+    RONTO(1e-27, "r"),
+
+    /**
      * Yocto is the decimal unit prefix in the metric system that corresponds to one
      * septillionth (10<sup>-24</sup>). It was added in
      * <a href="https://doi.org/10.1088/0026-1394/29/1/002">1991</a> to the SI
@@ -147,7 +163,23 @@ public enum SiPrefix implements UnitPrefix {
      * <a href="https://doi.org/10.1088/0026-1394/29/1/002">1991</a> to the SI
      * system. Its name means "eight" in ancient greek (1000<sup><b>8</b></sup>).
      */
-    YOTTA(1e24, "Y");
+    YOTTA(1e24, "Y"),
+
+    /**
+     * Ronna is the decimal unit prefix in the metric system that corresponds to one
+     * octillion (10<sup>27</sup>). It was added in
+     * <a href="https://www.bipm.org/en/cgpm-2022/resolution-3#page=">2022</a> to
+     * the SI system.
+     */
+    RONNA(1e27, "R"),
+
+    /**
+     * Quetta is the decimal unit prefix in the metric system that corresponds to
+     * one nonillion (10<sup>30</sup>). It was added in
+     * <a href="https://www.bipm.org/en/cgpm-2022/resolution-3#page=">2022</a> to
+     * the SI system.
+     */
+    QUETTA(1e30, "Q");
 
     /** The prefix factor. */
     private final double factor;
