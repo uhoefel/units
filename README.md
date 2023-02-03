@@ -13,7 +13,7 @@ Some of the supported features include:
 
   ```java
   Units.convert(3, "m", "mm");
-  Units.convert(3, SiBaseUnit.METER, "mm");
+  Units.convert(3, SiBaseUnit.METER, Unit.of("mm"));
   ```
   
   would both return `3000`.
