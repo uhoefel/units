@@ -1,5 +1,7 @@
 package eu.hoefel.unit.level;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +13,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,7 +61,7 @@ public enum LevelUnit implements Unit {
     static final Pattern LOG_UNIT_WITH_REF = Pattern.compile("(log|ln)\\^{0,1}(\\d*)\\(re[\\h, ](\\d+\\.?\\d*)[\\h,\u202F](.*?)\\)\\^{0,1}(\\d*)");
 
     /** The logger */
-    private static final Logger logger = Logger.getLogger(LevelUnit.class.getName());
+    private static final Logger logger = System.getLogger(LevelUnit.class.getName());
 
     /** The path where this project is hosted. */
     private static final String PROJECT_HOME_URL = "https://github.com/uhoefel/units";
@@ -149,7 +150,7 @@ public enum LevelUnit implements Unit {
         Objects.requireNonNull(type);
 
         if (LevelUnitReferenceType.findMatchingType(refUnit).stream().filter(r -> r == type).count() == 0) {
-            logger.warning(() -> ("For the given reference unit (%s) no matching reference unit type "
+            logger.log(Level.WARNING, () -> ("For the given reference unit (%s) no matching reference unit type "
                     + "could be found that matched the given reference unit type (%s). "
                     + "Continuing with the given reference unit type, but the resulting symbol "
                     + "will not be uniquely resolvable (the returned unit will be correct, though). "
