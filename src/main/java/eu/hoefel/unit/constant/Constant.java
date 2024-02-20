@@ -472,8 +472,8 @@ public interface Constant extends Texable {
     }
 
     /**
-     * @implSpec The default implementation assumes the units can be expressed by
-     *           the {@code siunitx} package.
+     * @units.implSpec The default implementation assumes the units can be expressed
+     *                 by the {@code siunitx} package.
      */
     @Override
     default List<LatexPreambleEntry> preambleExtras() {
