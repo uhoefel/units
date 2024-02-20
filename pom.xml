@@ -130,17 +130,17 @@
                     <encoding>UTF-8</encoding>
                     <tags>
                         <tag>
-                            <name>jatex.apiNote</name>
+                            <name>units.apiNote</name>
                             <placement>a</placement>
                             <head>API Note:</head>
                         </tag>
                         <tag>
-                            <name>jatex.implSpec</name>
+                            <name>units.implSpec</name>
                             <placement>a</placement>
                             <head>Implementation Requirements:</head>
                         </tag>
                         <tag>
-                            <name>jatex.implNote</name>
+                            <name>units.implNote</name>
                             <placement>a</placement>
                             <head>Implementation Note:</head>
                         </tag>

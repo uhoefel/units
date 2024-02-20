@@ -23,7 +23,7 @@ import eu.hoefel.utils.Strings;
  * <li><a href="https://en.wikipedia.org/wiki/International_System_of_Units">Wikipedia</a>
  * </ul>
  * 
- * @jatex.apiNote Implementing classes must make sure to have
+ * @units.apiNote Implementing classes must make sure to have
  *                {@link Object#equals(Object) equals} and
  *                {@link Object#hashCode() hashCode} properly implemented, such
  *                that a unit in a key of a {@link Map map} or in a {@link Set

@@ -248,9 +248,9 @@ public interface Constant extends Texable {
     /**
      * Converts the constant to the specified unit.
      * 
-     * @implSpec The default implementation converts the current constant to the
-     *           target units, assuming both the units of the current constant and
-     *           the target units are compatible units.
+     * @units.implSpec The default implementation converts the current constant to
+     *                 the target units, assuming both the units of the current
+     *                 constant and the target units are compatible units.
      * @param unit the target unit, not null
      * @return the constant in {@code units}, in the sense of, e.g., "km in units of
      *         Angstrom"
@@ -280,8 +280,9 @@ public interface Constant extends Texable {
     /**
      * Checks whether a conversion of the constant into the target unit is feasible.
      * 
-     * @implSpec The default implementation performs the check assuming both the
-     *           current constant and the target units are compatible SI units.
+     * @units.implSpec The default implementation performs the check assuming both
+     *                 the current constant and the target units are compatible SI
+     *                 units.
      * @param target the target unit, not null
      * @return true if the conversion can be done
      */
@@ -314,9 +315,9 @@ public interface Constant extends Texable {
      * Multiplies {@code constant} to the current constant, respecting units and
      * uncertainties.
      * 
-     * @implSpec The default implementation assumes both the uncertainty of the
-     *           current constant, and the specified {@code constant} are each one
-     *           standard deviation of a Gaussian distribution.
+     * @units.implSpec The default implementation assumes both the uncertainty of
+     *                 the current constant, and the specified {@code constant} are
+     *                 each one standard deviation of a Gaussian distribution.
      * @param constant the constant to multiply with, not null
      * @return the constant resulting from the product
      */
@@ -329,9 +330,9 @@ public interface Constant extends Texable {
      * Multiplies the current constant with the {@code value} in {@code unit}. The
      * new uncertainty is calculated via standard Gaussian error propagation.
      * 
-     * @implSpec The default implementation assumes both the uncertainty of the
-     *           current constant, and the specified {@code uncertainty} are each
-     *           one standard deviation of a Gaussian distribution.
+     * @units.implSpec The default implementation assumes both the uncertainty of
+     *                 the current constant, and the specified {@code uncertainty}
+     *                 are each one standard deviation of a Gaussian distribution.
      * @param value       the numeric value to multiply with
      * @param uncertainty the standard deviation
      * @param unit        the unit to multiply with, not null
@@ -350,9 +351,9 @@ public interface Constant extends Texable {
      * Divides the current constant by {@code constant}, respecting units and
      * uncertainties.
      * 
-     * @implSpec The default implementation assumes both the uncertainty of the
-     *           current constant, and the specified {@code constant} are each one
-     *           standard deviation of a Gaussian distribution.
+     * @units.implSpec The default implementation assumes both the uncertainty of
+     *                 the current constant, and the specified {@code constant} are
+     *                 each one standard deviation of a Gaussian distribution.
      * @param constant the constant to divide with, not null
      * @return the constant resulting from the division
      */
@@ -365,9 +366,9 @@ public interface Constant extends Texable {
      * Divides the current constant by the {@code value} in {@code unit}. The new
      * uncertainty is calculated via standard Gaussian error propagation.
      * 
-     * @implSpec The default implementation assumes both the uncertainty of the
-     *           current constant, and the specified {@code uncertainty} are each
-     *           one standard deviation of a Gaussian distribution.
+     * @units.implSpec The default implementation assumes both the uncertainty of
+     *                 the current constant, and the specified {@code uncertainty}
+     *                 are each one standard deviation of a Gaussian distribution.
      * @param value       the numeric value to divide by
      * @param uncertainty the standard deviation
      * @param unit        the unit to divide by, not null
@@ -398,8 +399,9 @@ public interface Constant extends Texable {
     /**
      * Powers the constant, i.e. the numeric value, the uncertainty, and the units.
      * 
-     * @implSpec The default implementation assumes the uncertainty of the current
-     *           constant is one standard deviation of a Gaussian distribution.
+     * @units.implSpec The default implementation assumes the uncertainty of the
+     *                 current constant is one standard deviation of a Gaussian
+     *                 distribution.
      * @param exponent the exponent
      * @return the power of the constant
      */
@@ -424,8 +426,9 @@ public interface Constant extends Texable {
      * Gets the {@code n}th root of the numeric value, the uncertainty, and the
      * units. The unit exponents need to remain integers for this to work!
      * 
-     * @implSpec The default implementation assumes the uncertainty of the current
-     *           constant is one standard deviation of a Gaussian distribution.
+     * @units.implSpec The default implementation assumes the uncertainty of the
+     *                 current constant is one standard deviation of a Gaussian
+     *                 distribution.
      * @param n the root exponent
      * @return the nth root of the constant
      * @throws UnsupportedOperationException if taking the nth root of the constants
@@ -460,8 +463,8 @@ public interface Constant extends Texable {
     }
 
     /**
-     * @implSpec The default implementation assumes the units can be expressed by
-     *           the {@code siunitx} package.
+     * @units.implSpec The default implementation assumes the units can be expressed
+     *                 by the {@code siunitx} package.
      */
     @Override
     default List<LatexPackage> neededPackages() {
@@ -483,8 +486,8 @@ public interface Constant extends Texable {
     }
 
     /**
-     * @implSpec The default implementation assumes the units can be expressed by
-     *           the {@code siunitx} package.
+     * @units.implSpec The default implementation assumes the units can be expressed
+     *                 by the {@code siunitx} package.
      */
     @Override
     default List<String> latexCode() {
