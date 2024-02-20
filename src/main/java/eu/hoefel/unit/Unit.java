@@ -18,19 +18,16 @@ import eu.hoefel.utils.Strings;
  * units will be compatible to the SI system. For reference consider:
  * <ul>
  * <li><a href="https://doi.org/10.1088/1681-7575/ab0013">2019 redefinition</a>
- * <li><a href=
- * "https://www.bipm.org/cc/TGFC/Allowed/Minutes/CODATA_Minutes_14-BIPM-public.pdf">minutes
- * of CODATA task group</a>
- * <li><a href=
- * "https://en.wikipedia.org/wiki/International_System_of_Units">Wikipedia</a>
+ * <li><a href="https://www.bipm.org/cc/TGFC/Allowed/Minutes/CODATA_Minutes_14-BIPM-public.pdf">minutes
+ *     of CODATA task group</a>
+ * <li><a href="https://en.wikipedia.org/wiki/International_System_of_Units">Wikipedia</a>
  * </ul>
  * 
- * @apiNote Implementing classes must make sure to have
- *          {@link Object#equals(Object) equals} and {@link Object#hashCode()
- *          hashCode} properly implemented, such that a unit in a key of a
- *          {@link Map map} or in a {@link Set set} may only occur once. It is
- *          recommended to use enums.
- * 
+ * @jatex.apiNote Implementing classes must make sure to have
+ *                {@link Object#equals(Object) equals} and
+ *                {@link Object#hashCode() hashCode} properly implemented, such
+ *                that a unit in a key of a {@link Map map} or in a {@link Set
+ *                set} may only occur once. It is recommended to use enums.
  * @author Udo Hoefel
  */
 public interface Unit {
