@@ -712,9 +712,9 @@ public enum PhysicsConstant implements Constant {
     PROTON_RMS_CHARGE_RADIUS(8.414e-16, 0.019e-16, SiBaseUnit.METER),
 
     /**
-     * The quantisation of circulation was first observed by
-     * <a href="https://doi.org/10.1103/PhysRevLett.43.214">Yarmchuk et al.
-     * (1979)</a>. It plays a role e.g. in rotating superfluid helium (see Yarmchuks
+     * The quantization of circulation was first observed by
+     * <a href="https://doi.org/10.1103/PhysRevLett.43.214">Yarmchuk et al. (1979)</a>.
+     * It plays a role e.g. in rotating superfluid helium (see Yarmchuks
      * paper).
      */
     QUANTUM_OF_CIRCULATION(3.6369475516e-4, 0.0000000011e-4, Unit.of("m^2 s^-1")),
